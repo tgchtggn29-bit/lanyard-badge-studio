@@ -1,0 +1,8 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>render page</title>
+<style>html,body{margin:0;background:transparent}</style></head>
+<body><script src="engine.js"></script>
+<script>
+// helpers used by scripts/render.mjs (headless)
+window.toURL = (cv, type, q) => cv.toDataURL(type || 'image/png', q);
+</script></body></html>

@@ -1,0 +1,19 @@
+{
+  "name": "lanyard-badge-studio",
+  "version": "0.1.0",
+  "description": "上传品牌资料 → 自动生成会晃动的挂绳工牌视频 / GIF / 海报 / 横幅，以及给印刷厂的工牌印刷包。Brand config → animated lanyard badge video, GIF, posters and print-ready badge files.",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "studio": "npx --yes http-server -p 5173 -c-1 . -o /studio/",
+    "render": "node scripts/render.mjs",
+    "print": "node scripts/print.mjs",
+    "all": "node scripts/render.mjs --config examples/wqai/brand.json && node scripts/print.mjs --config examples/wqai/brand.json --people examples/wqai/people.csv",
+    "postinstall": "playwright install chromium"
+  },
+  "dependencies": {
+    "playwright": "^1.45.0"
+  },
+  "engines": { "node": ">=18" },
+  "keywords": ["badge", "lanyard", "工牌", "id-card", "event", "gif", "video", "print", "canvas", "playwright"]
+}

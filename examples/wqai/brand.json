@@ -1,0 +1,24 @@
+{
+  "name": "湾区AI日历",
+  "theme": { "accent": "#D8FF3E", "accent2": "#A8E62E", "bg": "#0A0A0A", "text": "#FFFFFF", "mute": "#8A8579", "dim": "#C2BDB1", "mode": "dark" },
+  "header": { "title": "湾区AI日历", "sub": "01 / AI PASS · GBA", "right": ["记录大湾区 AI 活动、赛事", "与每一位 AI 开发者的故事"] },
+  "giantWord": "WQAI",
+  "tags": ["今日 AI 活动", "黑客松现场", "全城赛事，日日更新", "从想法到产品", "一个湾区、许多故事", "一起创造、一起学习",
+           "本周报名中", "深·广·港·澳", "湾区 AI 人", "活动不迷路，赛事不错过", "开发者的日常", "你的 AI 工牌已到账"],
+  "strap": ["WQAI · GBA", "湾区AI日历"],
+  "card": {
+    "brand": "湾区AI日历", "corner": "NO. 2026", "kicker": "01 / AI PASS",
+    "headline": ["AI EVENTS", "IN THE "], "highlight": "BAY",
+    "hero": { "type": "calendar", "highlights": [3, 9, 12, 17, 24], "today": 26 },
+    "bandTitle": "湾区 AI 日历", "bandSub": "GBA · AI EVENTS & CONTESTS"
+  },
+  "back": { "name": "Kenny", "title": "主理人 / Founder", "id": "NO. 0001", "note": "凭此卡出入活动现场 · 请妥善保管" },
+  "pulse": "湾区 AI 日历",
+  "credit": "Created by 湾区AI日历 · Greater Bay Area AI Events Calendar",
+  "poster": {
+    "kicker": "01 / GBA AI EVENTS CALENDAR", "title": ["湾区", "AI 日历"],
+    "sub": ["AI 活动 · 赛事 · 黑客松", "深广港澳 · 每周更新"],
+    "handle": "@湾区AI日历", "channels": "公众号 · 小红书 · 日历订阅",
+    "tags": ["今日 AI 活动", "黑客松现场", "一人公司 OPC", "湾区 AI 人", "赛事报名中", "深·广·港·澳"]
+  }
+}

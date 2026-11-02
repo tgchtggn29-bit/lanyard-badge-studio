@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lanyard Badge Studio · 工牌工作室</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Noto+Sans+SC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0A0A0A;--panel:#121212;--line:rgba(255,255,255,.10);--text:#F2F2F2;--mute:#8A8579;--acc:#D8FF3E}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:14px/1.5 "Inter","Noto Sans SC",sans-serif}
+header{height:56px;display:flex;align-items:center;gap:12px;padding:0 18px;border-bottom:1px solid var(--line)}
+header .dot{width:8px;height:8px;border-radius:50%;background:var(--acc);box-shadow:0 0 12px var(--acc)}
+header h1{font-size:15px;margin:0;font-weight:800;letter-spacing:.02em}
+header .sp{flex:1}
+button,.btn{background:#1b1b1b;color:var(--text);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font:600 13px inherit;font-family:inherit;cursor:pointer;white-space:nowrap}
+button:hover,.btn:hover{border-color:var(--acc);color:var(--acc)}
+button.primary{background:var(--acc);color:#0A0A0A;border-color:var(--acc)}
+button.primary:hover{color:#0A0A0A;filter:brightness(1.05)}
+main{display:grid;grid-template-columns:340px 1fr;height:calc(100% - 56px)}
+aside{border-right:1px solid var(--line);overflow:auto;padding:14px 16px 40px;background:var(--panel)}
+aside h3{font-size:11px;letter-spacing:.16em;color:var(--acc);margin:18px 0 8px;font-weight:800}
+aside label{display:block;font-size:12px;color:var(--mute);margin:8px 0 4px}
+aside input[type=text],aside textarea,aside select{width:100%;background:#0c0c0c;border:1px solid var(--line);color:var(--text);border-radius:8px;padding:7px 9px;font:13px inherit;font-family:inherit}
+aside textarea{min-height:70px;resize:vertical}
+.row{display:flex;gap:8px}.row>*{flex:1}
+.colors{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.colors div{display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--mute)}
+input[type=color]{width:100%;height:32px;border:1px solid var(--line);border-radius:8px;background:none;padding:2px}
+.warn{background:rgba(255,120,90,.12);border:1px solid rgba(255,120,90,.4);color:#ffb3a0;border-radius:8px;padding:8px 10px;font-size:12px;margin-top:10px;display:none}
+section.view{position:relative;overflow:hidden;display:flex;flex-direction:column}
+.tabs{display:flex;gap:6px;padding:10px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tabs button.on{background:var(--acc);color:#0A0A0A;border-color:var(--acc)}
+.pane{flex:1;display:none;overflow:auto;position:relative}
+.pane.on{display:block}
+/* ---- 3D badge stage ---- */
+#stage{position:absolute;inset:0;overflow:hidden;cursor:grab;touch-action:none;
+  background:radial-gradient(ellipse at 50% 35%,rgba(216,255,62,.12),transparent 60%),var(--bg)}
+#stage.grabbing{cursor:grabbing}
+#world{position:absolute;left:0;top:0;transform-origin:0 0}
+#rope{position:absolute;left:0;top:0;pointer-events:none}
+.hang{position:absolute;width:300px;height:395px;perspective:1400px;transform-style:preserve-3d}
+.flip{position:absolute;inset:0;transform-style:preserve-3d;transform-origin:50% 50%}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.face canvas{width:100%;height:100%;display:block;pointer-events:none}
+.face.back{transform:rotateY(180deg)}
+.hint{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;
+  background:rgba(18,18,18,.85);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:999px;padding:6px 8px 6px 14px;font-size:12px;color:var(--mute);z-index:5}
+.hint input[type=range]{width:110px;accent-color:var(--acc)}
+/* ---- other panes ---- */
+.gallery{padding:18px;display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.card .t{font-weight:800;font-size:13px}.card .s{font-size:12px;color:var(--mute)}
+.card canvas,.card img{display:block;border-radius:8px;background:#000;max-width:100%}
+#lightbox{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;z-index:50;overflow:auto;cursor:zoom-out}
+#lightbox img{display:block;margin:30px auto;max-width:none;width:min(1100px,96vw)}
+@media (max-width:860px){main{grid-template-columns:1fr;height:auto}aside{max-height:none;border-right:0;border-bottom:1px solid var(--line)}section.view{height:80vh}}
+</style>
+</head>
+<body>
+<header>
+  <span class="dot"></span><h1>Lanyard Badge Studio · 工牌工作室</h1>
+  <span class="sp"></span>
+  <label class="btn">导入配置<input id="importCfg" type="file" accept=".json" hidden></label>
+  <button id="exportCfg" class="primary">导出 brand.json</button>
+</header>
+<main>
+<aside>
+  <h3>品牌</h3>
+  <label>品牌名称</label><input id="f_name" type="text">
+  <label>背景大字（建议 2–6 个字母）</label><input id="f_giant" type="text">
+  <div class="row">
+    <div><label>Logo（可选，PNG/SVG）</label><input id="f_logo" type="file" accept="image/*"></div>
+  </div>
+  <h3>品牌色</h3>
+  <div class="colors">
+    <div>主色<input id="c_accent" type="color"></div>
+    <div>辅助色<input id="c_accent2" type="color"></div>
+    <div>底色<input id="c_bg" type="color"></div>
+  </div>
+  <h3>工牌正面</h3>
+  <div class="row"><div><label>卡片品牌</label><input id="f_cbrand" type="text"></div><div><label>右上角</label><input id="f_corner" type="text"></div></div>
+  <label>小标题</label><input id="f_kicker" type="text">
+  <label>大标题（每行一句，最后一行后面接高亮词）</label><textarea id="f_headline" rows="2"></textarea>
+  <label>高亮词</label><input id="f_highlight" type="text">
+  <label>中间图案</label>
+  <select id="f_hero"><option value="calendar">日历格子</option><option value="image">上传图片（吉祥物/产品）</option><option value="none">留空</option></select>
+  <div id="heroOpts">
+    <div class="row"><div><label>高亮日期</label><input id="f_hot" type="text" placeholder="3,9,12,17,24"></div><div><label>今天</label><input id="f_today" type="text"></div></div>
+  </div>
+  <div id="heroImg" style="display:none"><label>中间图片</label><input id="f_heroimg" type="file" accept="image/*"></div>
+  <div class="row"><div><label>底条标题</label><input id="f_band" type="text"></div></div>
+  <label>底条副标题</label><input id="f_bandsub" type="text">
+  <h3>工牌背面</h3>
+  <div class="row"><div><label>姓名</label><input id="b_name" type="text"></div><div><label>编号</label><input id="b_id" type="text"></div></div>
+  <label>职位</label><input id="b_title" type="text">
+  <label>备注</label><input id="b_note" type="text">
+  <h3>挂绳 & 动画</h3>
+  <label>挂绳文字（用 | 分隔）</label><input id="f_strap" type="text">
+  <label>浮动标签（每行一个，最多 12 个）</label><textarea id="f_tags" rows="6"></textarea>
+  <label>放大缩小的品牌字</label><input id="f_pulse" type="text">
+  <label>左上角标题 / 副标题</label><div class="row"><input id="h_title" type="text"><input id="h_sub" type="text"></div>
+  <label>右上角两行</label><textarea id="h_right" rows="2"></textarea>
+  <label>底部署名</label><input id="f_credit" type="text">
+  <h3>海报 / 横幅</h3>
+  <label>标题（每行一句）</label><textarea id="p_title" rows="2"></textarea>
+  <label>副标题（两行）</label><textarea id="p_sub" rows="2"></textarea>
+  <div class="row"><div><label>账号</label><input id="p_handle" type="text"></div><div><label>渠道</label><input id="p_channels" type="text"></div></div>
+  <div id="urlWarn" class="warn"></div>
+</aside>
+
+<section class="view">
+  <div class="tabs">
+    <button data-pane="p3d" class="on">3D 工牌（可拖拽）</button>
+    <button data-pane="panim">动画预览</button>
+    <button data-pane="pposter">海报 & 横幅</button>
+    <button data-pane="pprint">印刷稿</button>
+  </div>
+
+  <div id="p3d" class="pane on">
+    <div id="stage">
+      <div id="world">
+        <canvas id="rope"></canvas>
+        <div class="hang" id="hang"><div class="flip" id="flip">
+          <div class="face front" id="faceFront"></div>
+          <div class="face back" id="faceBack"></div>
+        </div></div>
+      </div>
+      <div class="hint">
+        <span>拖动晃动 · 右键/Shift 拖动旋转 · 双击翻面 · 滚轮缩放</span>
+        <input id="zoom" type="range" min="0.6" max="2.6" step="0.01" value="1" title="缩放">
+        <button id="btnFlip">翻面</button>
+        <button id="btnDrop">重新掉落</button>
+        <button id="btnDetail" class="primary">看细节</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="panim" class="pane">
+    <div class="gallery">
+      <div class="card"><div class="t">动画预览（实时，不含动态模糊）</div>
+        <canvas id="anim" width="540" height="960" style="width:360px;height:640px"></canvas>
+        <div class="row"><button id="btnRec">录制一遍 WebM</button></div>
+        <div class="s">MP4 / GIF / 4K / 首帧即封面 等成片请用命令行：<br><code>npm run render -- --config brand.json</code></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="pposter" class="pane"><div class="gallery" id="posterGallery"></div></div>
+  <div id="pprint" class="pane"><div class="gallery" id="printGallery"></div></div>
+</section>
+</main>
+<div id="lightbox"><img id="lbImg" alt=""></div>
+
+<script src="../src/engine.js"></script>
+<script>
+const E = BadgeEngine;
+let cfg = JSON.parse(JSON.stringify(E.DEFAULT_CONFIG));
+cfg.fonts = { cjk: 'Noto Sans SC', latin: 'Inter' };
+const $ = id => document.getElementById(id);
+
+// ---------------------------------------------------------------- form <-> config
+const bind = [
+  ['f_name', 'name'], ['f_giant', 'giantWord'], ['f_cbrand', 'card.brand'], ['f_corner', 'card.corner'], ['f_kicker', 'card.kicker'],
+  ['f_highlight', 'card.highlight'], ['f_band', 'card.bandTitle'], ['f_bandsub', 'card.bandSub'],
+  ['b_name', 'back.name'], ['b_id', 'back.id'], ['b_title', 'back.title'], ['b_note', 'back.note'],
+  ['f_pulse', 'pulse'], ['h_title', 'header.title'], ['h_sub', 'header.sub'], ['f_credit', 'credit'],
+  ['p_handle', 'poster.handle'], ['p_channels', 'poster.channels'],
+  ['c_accent', 'theme.accent'], ['c_accent2', 'theme.accent2'], ['c_bg', 'theme.bg'],
+  ['f_hero', 'card.hero.type'], ['f_today', 'card.hero.today', 'num']
+];
+const lists = [['f_headline', 'card.headline', '\n'], ['f_tags', 'tags', '\n'], ['h_right', 'header.right', '\n'],
+  ['p_title', 'poster.title', '\n'], ['p_sub', 'poster.sub', '\n'], ['f_strap', 'strap', '|'], ['f_hot', 'card.hero.highlights', ',', 'num']];
+const get = (o, p) => p.split('.').reduce((a, k) => a && a[k], o);
+const set = (o, p, v) => { const ks = p.split('.'); let a = o; ks.slice(0, -1).forEach(k => { a[k] = a[k] || {}; a = a[k]; }); a[ks.at(-1)] = v; };
+function fillForm() {
+  bind.forEach(([id, p]) => { const v = get(cfg, p); $(id).value = v == null ? '' : v; });
+  lists.forEach(([id, p, sep]) => { $(id).value = (get(cfg, p) || []).join(sep === '\n' ? '\n' : sep === '|' ? ' | ' : ','); });
+  toggleHero();
+}
+function readForm() {
+  bind.forEach(([id, p, t]) => { let v = $(id).value; if (t === 'num') v = v === '' ? null : +v; set(cfg, p, v); });
+  lists.forEach(([id, p, sep, t]) => {
+    let arr = $(id).value.split(sep).map(s => sep === '\n' ? s.replace(/\s+$/, '') : s.trim()).filter(s => s.length);
+    if (p === 'card.headline') arr = $(id).value.split('\n').filter((s, i, a) => s.length || i < a.length - 1);
+    if (t === 'num') arr = arr.map(Number).filter(n => !isNaN(n));
+    set(cfg, p, arr);
+  });
+  cfg.theme.giant = null;
+}
+function toggleHero() { const t = $('f_hero').value; $('heroOpts').style.display = t === 'calendar' ? '' : 'none'; $('heroImg').style.display = t === 'image' ? '' : 'none'; }
+const fileToURL = f => new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(f); });
+$('f_logo').onchange = async e => { cfg.logo = e.target.files[0] ? await fileToURL(e.target.files[0]) : null; apply(); };
+$('f_heroimg').onchange = async e => { set(cfg, 'card.hero.image', e.target.files[0] ? await fileToURL(e.target.files[0]) : null); apply(); };
+$('f_hero').onchange = () => { toggleHero(); readForm(); apply(); };
+let tmr; document.querySelector('aside').addEventListener('input', e => { if (e.target.type === 'file') return; clearTimeout(tmr); tmr = setTimeout(() => { readForm(); apply(); }, 250); });
+
+$('exportCfg').onclick = () => download(new Blob([JSON.stringify(cfg, null, 2)], { type: 'application/json' }), 'brand.json');
+$('importCfg').onchange = async e => { const f = e.target.files[0]; if (!f) return; cfg = E.DEFAULT_CONFIG && Object.assign(JSON.parse(JSON.stringify(E.DEFAULT_CONFIG)), JSON.parse(await f.text())); fillForm(); apply(); };
+function download(blob, name) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
+const dlCanvas = (cv, name) => cv.toBlob(b => download(b, name), 'image/png');
+
+// ---------------------------------------------------------------- apply config everywhere
+let faces = {};
+async function apply() {
+  await E.setConfig(cfg);
+  document.documentElement.style.setProperty('--acc', E.config.theme.accent);
+  const hits = E.findUrls(cfg);
+  $('urlWarn').style.display = hits.length ? 'block' : 'none';
+  $('urlWarn').textContent = hits.length ? '⚠ 检测到网址：' + hits.map(h => h.match.join(' ')).join('、') + '。小红书等平台可能判定违规，建议改成品牌名或账号。' : '';
+  faces.front = E.holderCanvas('front', 2.5); faces.back = E.holderCanvas('back', 2.5);
+  $('faceFront').replaceChildren(faces.front); $('faceBack').replaceChildren(faces.back);
+  renderPoster(); renderPrint();
+}
+
+// ---------------------------------------------------------------- 3D badge: verlet lanyard + CSS 3D card
+const stage = $('stage'), world = $('world'), rope = $('rope'), rc = rope.getContext('2d'), hang = $('hang'), flip = $('flip');
+const N = 16, ROPE = 330, SEG = ROPE / N, CARD_W = 300, CARD_H = 395, CORD = 18, ORIGIN_Y = 24 / 500 * CARD_H;
+let SW = 800, SH = 800, zoom = 1, pts = [], ang = 0, av = 0, yaw = 0, yv = 0, yawTarget = 0, tilt = 0;
+let drag = null;
+function layout() {
+  const r = stage.getBoundingClientRect(); SW = r.width; SH = r.height;
+  const dpr = Math.min(3, (window.devicePixelRatio || 1) * Math.max(1, zoom));
+  rope.width = SW * dpr; rope.height = SH * dpr; rope.style.width = SW + 'px'; rope.style.height = SH + 'px'; rc.setTransform(dpr, 0, 0, dpr, 0, 0);
+  world.style.width = SW + 'px'; world.style.height = SH + 'px';
+  world.style.transform = `translate(${SW / 2}px,0) scale(${zoom}) translate(${-SW / 2}px,0)`;
+}
+function anchor() { return { x: SW / 2, y: -40 }; }
+function drop() {
+  const a = anchor(); pts = [];
+  for (let i = 0; i <= N; i++) { const y = a.y + i * SEG - 520 * (i / N); pts.push({ x: a.x + i * 4, y, px: a.x + i * 4, py: y }); }
+  ang = 0.3; av = 0; yv = 0.06;
+}
+function toWorld(e) { const r = stage.getBoundingClientRect(); return { x: (e.clientX - r.left - SW / 2) / zoom + SW / 2, y: (e.clientY - r.top) / zoom }; }
+stage.addEventListener('contextmenu', e => e.preventDefault());
+stage.addEventListener('pointerdown', e => {
+  const p = toWorld(e), end = pts[N];
+  const rotate = e.button === 2 || e.shiftKey || e.target.closest('.hint') ? true : false;
+  if (e.target.closest('.hint')) return;
+  stage.setPointerCapture(e.pointerId); stage.classList.add('grabbing');
+  drag = { id: e.pointerId, rotate, ox: p.x - end.x, oy: p.y - end.y, lx: e.clientX, ly: e.clientY, t: performance.now() };
+});
+stage.addEventListener('pointermove', e => {
+  if (!drag || drag.id !== e.pointerId) return;
+  const dx = e.clientX - drag.lx, dy = e.clientY - drag.ly; drag.lx = e.clientX; drag.ly = e.clientY;
+  if (drag.rotate) { yaw += dx * 0.6; yv = dx * 0.6; tilt = Math.max(-35, Math.min(35, tilt - dy * 0.3)); }
+  else { const p = toWorld(e); drag.tx = p.x - drag.ox; drag.ty = p.y - drag.oy; yv += dx * 0.05; }
+});
+const endDrag = e => { if (drag && drag.id === e.pointerId) { drag = null; stage.classList.remove('grabbing'); } };
+stage.addEventListener('pointerup', endDrag); stage.addEventListener('pointercancel', endDrag);
+stage.addEventListener('dblclick', e => { if (!e.target.closest('.hint')) doFlip(); });
+stage.addEventListener('wheel', e => { e.preventDefault(); setZoom(zoom * Math.exp(-e.deltaY * 0.0015)); }, { passive: false });
+function setZoom(z) { zoom = Math.max(0.6, Math.min(2.6, z)); $('zoom').value = zoom; layout(); }
+$('zoom').oninput = e => setZoom(+e.target.value);
+function doFlip() { yawTarget = Math.round(yaw / 180) * 180 + 180; }
+$('btnFlip').onclick = doFlip; $('btnDrop').onclick = () => { drop(); yaw = yawTarget = 0; tilt = 0; };
+$('btnDetail').onclick = () => { const side = (Math.round(yaw / 180) % 2 + 2) % 2 ? 'back' : 'front'; $('lbImg').src = E.holderCanvas(side, 4).toDataURL(); $('lightbox').style.display = 'block'; };
+$('lightbox').onclick = () => $('lightbox').style.display = 'none';
+
+let last = performance.now();
+function step(dt) {
+  const a = anchor(), g = 2200 * dt * dt;
+  for (let i = 1; i <= N; i++) {
+    const p = pts[i], vx = (p.x - p.px) * 0.988, vy = (p.y - p.py) * 0.988;
+    p.px = p.x; p.py = p.y; p.x += vx; p.y += vy + g * (i === N ? 2.2 : 1);
+  }
+  if (drag && !drag.rotate && drag.tx != null) { const e = pts[N]; e.x += (drag.tx - e.x) * 0.6; e.y += (drag.ty - e.y) * 0.6; }
+  pts[0].x = a.x; pts[0].y = a.y;
+  for (let k = 0; k < 24; k++) {
+    for (let i = 0; i < N; i++) {
+      const p = pts[i], q = pts[i + 1], dx = q.x - p.x, dy = q.y - p.y, d = Math.hypot(dx, dy) || 1e-6;
+      if (d > SEG) { const diff = (d - SEG) / d, w0 = i === 0 ? 0 : 0.5, w1 = i === 0 ? 1 : 0.5;
+        p.x += dx * diff * w0; p.y += dy * diff * w0; q.x -= dx * diff * w1; q.y -= dy * diff * w1; }
+    }
+    pts[0].x = a.x; pts[0].y = a.y;
+  }
+  // card angle follows the lanyard end with inertia (card lags behind = realistic swing)
+  const e = pts[N], f = pts[N - 3], target = -Math.atan2(e.x - f.x, e.y - f.y);
+  const endVx = (e.x - e.px) / Math.max(dt, 1e-3);
+  av += (target - ang) * 0.09 - av * 0.07 - endVx * 0.00002; ang += av;
+  // yaw: spin inertia, gentle twist from sideways motion, settle to a face
+  if (!(drag && drag.rotate)) { yaw += yv; yv *= 0.93; yaw += (yawTarget - yaw) * 0.06; tilt *= 0.9; if (Math.abs(yv) < 0.05) yawTarget = Math.round(yaw / 180) * 180; }
+}
+function drawRope() {
+  rc.clearRect(0, 0, SW, SH);
+  const acc = E.config.theme.accent, bg = E.config.theme.bg, words = E.config.strap && E.config.strap.length ? E.config.strap : [E.config.name];
+  rc.lineCap = 'round'; rc.lineJoin = 'round';
+  // two strap layers (front + slightly offset back) to look like a folded lanyard
+  const path = () => { rc.beginPath(); rc.moveTo(pts[0].x, pts[0].y - 200); pts.forEach(p => rc.lineTo(p.x, p.y)); };
+  rc.strokeStyle = 'rgba(0,0,0,.35)'; rc.lineWidth = 26; rc.save(); rc.translate(3, 5); path(); rc.stroke(); rc.restore();
+  rc.strokeStyle = acc; rc.lineWidth = 24; path(); rc.stroke();
+  rc.strokeStyle = 'rgba(255,255,255,.18)'; rc.lineWidth = 6; rc.save(); rc.translate(-5, 0); path(); rc.stroke(); rc.restore();
+  // words along the strap
+  rc.fillStyle = bg; rc.font = `900 11px "Inter","Noto Sans SC",sans-serif`; rc.textAlign = 'center'; rc.textBaseline = 'middle';
+  let acc_len = 0, next = 50, wi = 0;
+  for (let i = 0; i < N - 1; i++) {
+    const p = pts[i], q = pts[i + 1], d = Math.hypot(q.x - p.x, q.y - p.y);
+    while (acc_len + d >= next) {
+      const t = (next - acc_len) / d, x = p.x + (q.x - p.x) * t, y = p.y + (q.y - p.y) * t;
+      rc.save(); rc.translate(x, y); rc.rotate(Math.atan2(q.y - p.y, q.x - p.x)); rc.fillText(words[wi++ % words.length], 0, 0); rc.restore();
+      next += 95;
+    }
+    acc_len += d;
+  }
+  // reel + cord
+  const e = pts[N];
+  rc.save(); rc.translate(e.x, e.y); rc.rotate(ang);
+  rc.strokeStyle = '#9A9E92'; rc.lineWidth = 2.5; rc.beginPath(); rc.moveTo(0, 0); rc.lineTo(0, CORD + ORIGIN_Y + 6); rc.stroke();
+  rc.restore();
+  rc.save(); rc.translate(e.x, e.y);
+  rc.shadowColor = 'rgba(0,0,0,.5)'; rc.shadowBlur = 12; rc.shadowOffsetY = 4;
+  rc.beginPath(); rc.arc(0, 0, 24, 0, 7); const gr = rc.createRadialGradient(-7, -8, 2, 0, 0, 24); gr.addColorStop(0, '#3A3A3A'); gr.addColorStop(1, '#141414'); rc.fillStyle = gr; rc.fill();
+  rc.shadowBlur = 0; rc.beginPath(); rc.arc(0, 0, 15, 0, 7); rc.strokeStyle = acc; rc.globalAlpha = .6; rc.lineWidth = 1.5; rc.stroke(); rc.globalAlpha = 1;
+  rc.fillStyle = acc; rc.beginPath(); rc.arc(0, 0, 3.5, 0, 7); rc.fill(); rc.restore();
+}
+function loop(now) {
+  const dt = Math.min(0.033, (now - last) / 1000); last = now;
+  step(dt); drawRope();
+  const e = pts[N];
+  hang.style.left = (e.x - CARD_W / 2) + 'px'; hang.style.top = (e.y + CORD) + 'px';
+  hang.style.transformOrigin = `50% ${-CORD}px`;
+  hang.style.transform = `rotate(${ang}rad)`;
+  flip.style.transform = `rotateX(${tilt}deg) rotateY(${yaw}deg)`;
+  requestAnimationFrame(loop);
+}
+
+// ---------------------------------------------------------------- animation preview + WebM recording
+const ac = $('anim'), actx = ac.getContext('2d'); let t0 = performance.now(), recording = null;
+function animLoop(now) {
+  if ($('panim').classList.contains('on') || recording) {
+    const D = E.config.motion.duration, t = ((now - t0) / 1000) % D;
+    actx.setTransform(ac.width / E.W, 0, 0, ac.height / E.H, 0, 0); E.scene(actx, t);
+  }
+  requestAnimationFrame(animLoop);
+}
+$('btnRec').onclick = () => {
+  if (recording) return; const st = ac.captureStream(30), chunks = [];
+  const mr = new MediaRecorder(st, { mimeType: MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm', videoBitsPerSecond: 8e6 });
+  mr.ondataavailable = e => chunks.push(e.data); mr.onstop = () => { download(new Blob(chunks, { type: 'video/webm' }), 'badge.webm'); recording = null; $('btnRec').textContent = '录制一遍 WebM'; };
+  t0 = performance.now(); recording = mr; mr.start(); $('btnRec').textContent = '录制中…';
+  setTimeout(() => mr.stop(), E.config.motion.duration * 1000);
+};
+
+// ---------------------------------------------------------------- posters & print
+function tile(parent, title, sub, cv, cssW, file) {
+  const d = document.createElement('div'); d.className = 'card';
+  d.innerHTML = `<div class="t">${title}</div><div class="s">${sub}</div>`;
+  cv.style.width = cssW + 'px'; cv.style.height = 'auto'; d.appendChild(cv);
+  const b = document.createElement('button'); b.textContent = '下载 PNG'; b.onclick = () => dlCanvas(file ? file() : cv, b.dataset.name); b.dataset.name = title.replace(/\s.*/, '') + '.png';
+  d.appendChild(b); parent.appendChild(d);
+}
+function renderPoster() {
+  const g = $('posterGallery'); g.replaceChildren();
+  tile(g, '停稳预览图', '1080×1920 · 无动态模糊，适合当封面', E.still(1), 270, () => E.still(1.5));
+  tile(g, '透明底工牌', '可贴到任何背景上', E.badgeOnly(1), 200, () => E.badgeOnly(2));
+  tile(g, '3:4 海报', '1242×1660 · 主页背景 / 笔记封面', E.poster(0.5), 300, () => E.poster(1));
+  tile(g, '横幅', '1440×600 · 紧凑排版', E.banner(0.5), 480, () => E.banner(1));
+}
+function renderPrint() {
+  const g = $('printGallery'); g.replaceChildren();
+  tile(g, '工牌正面', '54×85.6 mm + 3 mm 出血 · 下载为 600 dpi', E.printCard('front', { dpi: 150 }), 220, () => E.printCard('front', { dpi: 600 }));
+  tile(g, '工牌背面', '54×85.6 mm + 3 mm 出血 · 下载为 600 dpi', E.printCard('back', { dpi: 150 }), 220, () => E.printCard('back', { dpi: 600 }));
+  tile(g, '挂绳', '20×900 mm 热转印 · 下载为 300 dpi', E.printLanyard({ dpi: 40 }), 640, () => E.printLanyard({ dpi: 300 }));
+  const d = document.createElement('div'); d.className = 'card'; d.style.maxWidth = '420px';
+  d.innerHTML = `<div class="t">给打印店的完整印刷包</div><div class="s">带裁切线的 PDF、出血版 PDF、色值说明（HEX / RGB / CMYK 参考）、批量员工背面，用命令行一次导出：<br><code>npm run print -- --config brand.json --people people.csv</code><br>详见 docs/PRINT_GUIDE.md</div>`;
+  g.appendChild(d);
+}
+
+// ---------------------------------------------------------------- tabs & boot
+document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b));
+  document.querySelectorAll('.pane').forEach(p => p.classList.toggle('on', p.id === b.dataset.pane));
+  if (b.dataset.pane === 'p3d') layout();
+});
+window.addEventListener('resize', layout);
+(async () => {
+  try { const r = await fetch('../examples/wqai/brand.json'); if (r.ok) { cfg = Object.assign(cfg, await r.json()); cfg.fonts = { cjk: 'Noto Sans SC', latin: 'Inter' }; } } catch (e) { }
+  await document.fonts.ready; fillForm(); await apply(); layout(); drop();
+  requestAnimationFrame(loop); requestAnimationFrame(animLoop);
+})();
+</script>
+</body>
+</html>
