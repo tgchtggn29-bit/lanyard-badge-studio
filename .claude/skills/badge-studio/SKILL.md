@@ -14,7 +14,7 @@ Ask only for what you can't find yourself:
 1. **Brand basics** — name (Chinese + English if any), website, logo file, existing 工牌 / brand guide if they have one.
 2. **Tone** — one-line slogan, 6–12 short tags (2–10 characters each) that describe what they do.
 3. **Where it will be used** — 小红书 / 公众号 / 视频号 / 抖音 / X / printed 工牌.
-4. **Print?** — do they need physical badges; if yes, a staff list (name, title, ID) → `people.csv`.
+4. **Print?** — do they need physical badges / business cards; if yes, a staff list (name, title, ID, optional phone/email/wechat) → `people.csv`, and which business-card style (`grid` 暗夜网格 / `neon` 品牌色底 / `minimal` 极简白 — show `images/namecard_*.png` to let them pick).
 
 Skip any question the materials already answer. If the user is away, take sensible defaults and say which ones you took.
 
@@ -61,9 +61,10 @@ Send the user the preview images first for approval (fast), then the video/GIF, 
 | 提示网址违规 | remove URLs from every string (strap, corner, pulse, poster.handle…) |
 | 换中间图案 | `card.hero.type: "image"` + `card.hero.image: "mascot.png"` |
 | 浅色版 | `theme.mode: "light"` |
+| 换名片样式 / 联系方式 | `namecard.style`, `namecard.slogan`, `contact.{phone,email,wechat,address}` |
 
 ## 6. Deliver
 
 - Social: `video/badge_1080p_cover_x3.mp4` (小红书 / 视频号), `gif/badge_under_10MB.gif` (公众号), `images/preview_1080x1920.png` (cover).
 - Print: the whole `print/` folder — tell the user to forward it to the print shop as is; point out `06_设计规范.pdf` and that fluorescent colours need a spot-colour ink + proof (打样).
-- Interactive: `npm run studio` lets them drag / spin / flip the 3D badge and export PNGs.
+- Interactive: `npm run studio` (or the online link in the README) lets them drag / spin / flip the 3D badge, chat to tweak, pick a business-card style and export PNGs.

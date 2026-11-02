@@ -16,6 +16,8 @@ npm run print -- --config brand.json --people people.csv
 | `04_工牌背面_批量_裁切线.pdf` | 用了 `--people` 时生成：每位员工一页 |
 | `批量背面/*.png` | 同上，每人一张 600dpi 原图 |
 | `0x_*_出血_600dpi.png` | 位图原图，做其他物料（贴纸、胸牌）可用 |
+| `07_名片_正反面_裁切线.pdf` | 名片 90×54mm：第 1 页正面，后面每页一位员工的背面（用了 `--people` 时） |
+| `07/08_名片_*_出血_600dpi.png` | 名片正 / 背面原图 |
 | `05_挂绳_20x900mm.pdf / .png` | 挂绳热转印图，含 2mm 出血 |
 | `06_设计规范.pdf` | 尺寸、色值、字体、工艺、文件清单 —— 印刷厂最需要看的一份 |
 | `给印刷厂的说明.txt` | 纯文本版要点，方便直接贴到微信里 |
@@ -28,6 +30,7 @@ npm run print -- --config brand.json --people people.csv
 | 出血 | 每边 3 mm | `--bleed 3` |
 | 分辨率 | 600 dpi | `--dpi 600` |
 | 挂绳 | 20 × 900 mm | `--lanyard 20x900` |
+| 名片 | 90 × 54 mm 横版，样式取 `namecard.style` | `--namecard-style grid|neon|minimal` |
 
 常见其他尺寸：大号竖版胸卡 `--card 60x90`，会议证 `--card 90x120`，15mm 窄挂绳 `--lanyard 15x900`。
 
@@ -42,9 +45,9 @@ npm run print -- --config brand.json --people people.csv
 ## people.csv 格式
 
 ```csv
-name,title,id,note
-张三,产品经理 / PM,NO. 0001,凭此卡出入活动现场
-李四,设计师 / Designer,NO. 0002,凭此卡出入活动现场
+name,title,id,note,phone,email,wechat
+张三,产品经理 / PM,NO. 0001,凭此卡出入活动现场,138 0000 0001,zhang@yourco.com,zhangsan
+李四,设计师 / Designer,NO. 0002,凭此卡出入活动现场,138 0000 0002,li@yourco.com,lisi
 ```
 
-用 Excel 编辑后「另存为 CSV UTF-8」即可。
+`phone / email / wechat / address` 可选，用于名片背面；不填就用 brand.json 里的 `contact`。用 Excel 编辑后「另存为 CSV UTF-8」即可。

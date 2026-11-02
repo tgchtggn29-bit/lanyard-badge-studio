@@ -1,18 +1,33 @@
+<p align="center"><b>👉 <a href="https://raw.githack.com/tgchtggn29-bit/lanyard-badge-studio/main/studio/index.html">立即打开工作台体验 · Open the Studio</a> 👈</b><br>
+<sub>在线拖拽、旋转、翻面你的 3D 工牌，对话调整，免安装 · Drag, spin & flip a 3D badge in your browser — no install</sub></p>
+
 # Lanyard Badge Studio · 工牌工作室
 
-> 上传你的品牌资料，聊几句，就能拿到：**会掉下来、左右晃两下的挂绳工牌动画**（MP4 / GIF / 4K）、**海报和横幅**，以及**可以直接交给印刷厂的工牌印刷包**（带裁切线的 PDF、批量员工背面、挂绳、设计规范）。
->
-> Brand config in → animated lanyard-badge video & GIF, posters, banners, and a print-ready badge package out. Plus an interactive 3D badge you can drag, spin and flip in the browser.
+**致各位创始人、一人公司（OPC）主理人和企业老板：**
+
+参加展会、行业活动、社交聚会，或者每天在办公室里，一张有设计感的工牌，往往是别人记住你们公司的第一眼。现在不用找设计公司、不用等排期 —— 打开工作台，上传你们的 Logo 和品牌资料，用对话说出你想要的样子，就能生成**你们公司独一无二的工牌**：会掉落晃动的动态工牌视频、社交平台用的海报和横幅、配套的名片，以及可以直接交给印刷厂的印刷文件。
+
+让客户、合作伙伴、服务商和供应商一见面就留下好印象。**赶紧来体验吧！**
+
+**To founders, solo-company (OPC) owners and business leaders:**
+
+At trade shows, industry events, meetups — or simply around the office — a well-designed badge is often the first thing people remember about your company. No design agency, no waiting: open the Studio, upload your logo and brand materials, describe what you want in a quick chat, and get a **badge that is uniquely yours** — an animated lanyard-badge video, posters and banners for social media, matching business cards, and print-ready files you can hand straight to a print shop.
+
+Make a great first impression on customers, partners, service providers and suppliers. **Come and try it!**
 
 <p align="center">
-  <img src="docs/images/demo.gif" width="260" alt="工牌掉落动画">
+  <img src="docs/images/demo.gif" width="250" alt="工牌掉落动画 animated badge">
   &nbsp;
-  <img src="docs/images/preview.png" width="260" alt="停稳预览图">
+  <img src="docs/images/preview.png" width="250" alt="停稳预览图 preview">
   &nbsp;
-  <img src="docs/images/poster.png" width="260" alt="3:4 海报">
+  <img src="docs/images/poster.png" width="250" alt="3:4 海报 poster">
 </p>
 
-<p align="center"><img src="docs/images/studio.png" width="860" alt="网页工作台：可拖拽 / 旋转 / 翻面的 3D 工牌"></p>
+<p align="center"><img src="docs/images/studio.png" width="880" alt="网页工作台：3D 工牌 + 对话助手"></p>
+<p align="center"><sub>网页工作台：中间是可拖拽 / 旋转 / 翻面的 3D 工牌，右下角是对话助手 —— 上传品牌资料、用一句话调整 · Studio: interactive 3D badge + chat assistant</sub></p>
+
+<p align="center"><img src="docs/images/namecards.png" width="880" alt="三种名片样式 business card styles"></p>
+<p align="center"><sub>配套名片：暗夜网格 / 品牌色底 / 极简白，三种样式任选 · Matching business cards in 3 styles</sub></p>
 
 ---
 
@@ -26,6 +41,8 @@
 | | **图片**：停稳清晰预览图（正 / 背面）、透明底工牌、3:4 海报、紧凑横幅 |
 | 员工名单 `people.csv`（可选） | **印刷包**：工牌正面 / 背面（54×85.6 mm，3 mm 出血，600 dpi）、带裁切线 PDF、出血版 PDF、**每人一张的批量背面**、挂绳 20×900 mm、**设计规范 PDF**（色值 HEX / RGB / CMYK 参考、字体授权、工艺建议） |
 | 浏览器 | **3D 工牌**：拖着甩、右键 / Shift 拖动旋转、双击翻面、滚轮放大、「看细节」查看高清卡面 |
+| Logo / 品牌图 + 一句话 | **对话助手**：上传图片自动提取品牌色并放上 Logo；说「品牌叫 XX，主色 #FF5A3C，名字 张三 职位 设计师」即时生效；复杂需求一键「复制给 AI」再粘贴回 JSON |
+| 电话 / 微信 / 邮箱 / 地址 | **名片**：90×54 mm，三种样式（暗夜网格 / 品牌色底 / 极简白），带裁切线 PDF，按名单每人一张 |
 
 内置的平台避坑：
 - **网址检测**：配置里出现 `xxx.com / .ltd` 等网址会提醒（小红书等平台可能判定违规）。
@@ -37,6 +54,8 @@
 
 ### 1. 网页工作台（不用写代码）
 
+**不想安装：直接 [在线打开工作台](https://raw.githack.com/tgchtggn29-bit/lanyard-badge-studio/main/studio/index.html)。** 想在自己电脑上跑：
+
 ```bash
 git clone https://github.com/tgchtggn29-bit/lanyard-badge-studio
 cd lanyard-badge-studio
@@ -45,10 +64,10 @@ npm run studio        # 自动打开 http://localhost:5173/studio/ （无需 npm
 
 > Windows 若提示「禁止运行脚本」，用 `npm.cmd run studio`，或直接 `node scripts/serve.mjs`。没装 Git 可以在 GitHub 页面点 Code → Download ZIP。
 
-左边填品牌资料（名称、颜色、Logo、标语、标签、背面姓名职位），右边实时看：
+左边填品牌资料（名称、颜色、Logo、标语、标签、背面姓名职位、名片联系方式），或者直接在右下角**对话助手**里上传 Logo、用一句话说要改什么。中间实时看：
 - **3D 工牌**：拖拽、旋转、翻面、放大看细节
 - **动画预览**：可直接录一段 WebM
-- **海报 & 横幅**、**印刷稿**：一键下载 PNG
+- **海报 & 横幅**、**名片**（三选一）、**印刷稿**：一键下载 PNG
 - 改好后点「导出 brand.json」，交给命令行出成片
 
 ### 2. 命令行出全套成片
@@ -69,12 +88,13 @@ npm run all                                                      # 用示例跑�
 out/湾区AI日历/
 ├── video/   badge_1080p_cover_x3.mp4   badge_1080p_cover_x1.mp4   badge_1080p_single.mp4   (badge_4k_*.mp4)
 ├── gif/     badge_hd.gif               badge_under_10MB.gif
-├── images/  preview_1080x1920.png  preview_back_1080x1920.png  badge_transparent.png  poster_1242x1660.png  banner_*.png
+├── images/  preview_1080x1920.png  preview_back_1080x1920.png  badge_transparent.png  poster_1242x1660.png  banner_*.png  namecard_*.png
 └── print/   01_工牌正面_裁切线.pdf  02_工牌背面_裁切线.pdf  03_工牌正反面_出血版_无裁切线.pdf
-             04_工牌背面_批量_裁切线.pdf  05_挂绳_20x900mm.pdf  06_设计规范.pdf  给印刷厂的说明.txt  批量背面/*.png
+             04_工牌背面_批量_裁切线.pdf  05_挂绳_20x900mm.pdf  06_设计规范.pdf
+             07_名片_正反面_裁切线.pdf  07/08_名片_出血_600dpi.png  给印刷厂的说明.txt  批量背面/*.png
 ```
 
-常用参数：`--res 1080|4k|both`、`--fps 30`、`--gif-limit 10`、`--strict-url`（发现网址直接报错）、`--card 54x85.6`、`--bleed 3`、`--dpi 600`、`--lanyard 20x900`。
+常用参数：`--res 1080|4k|both`、`--fps 30`、`--gif-limit 10`、`--strict-url`（发现网址直接报错）、`--card 54x85.6`、`--bleed 3`、`--dpi 600`、`--lanyard 20x900`、`--namecard-style grid|neon|minimal`。
 
 ### 3. 让 AI 助手通过对话帮你做
 
