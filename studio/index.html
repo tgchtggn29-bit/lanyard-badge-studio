@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Lanyard Badge Studio · 工牌工作室</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Noto+Sans+SC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<!-- fonts load without blocking; if Google Fonts is unreachable (e.g. mainland China) system fonts are used -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Noto+Sans+SC:wght@400;500;600;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style>
 :root{--bg:#0A0A0A;--panel:#121212;--line:rgba(255,255,255,.10);--text:#F2F2F2;--mute:#8A8579;--acc:#D8FF3E}
 *{box-sizing:border-box}
@@ -376,7 +377,7 @@ document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
 window.addEventListener('resize', layout);
 (async () => {
   try { const r = await fetch('../examples/wqai/brand.json'); if (r.ok) { cfg = Object.assign(cfg, await r.json()); cfg.fonts = { cjk: 'Noto Sans SC', latin: 'Inter' }; } } catch (e) { }
-  await document.fonts.ready; fillForm(); await apply(); layout(); drop();
+  await Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 1500))]); fillForm(); await apply(); layout(); drop();
   requestAnimationFrame(loop); requestAnimationFrame(animLoop);
 })();
 </script>

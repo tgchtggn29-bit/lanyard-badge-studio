@@ -40,8 +40,10 @@
 ```bash
 git clone https://github.com/tgchtggn29-bit/lanyard-badge-studio
 cd lanyard-badge-studio
-npm run studio        # 打开 http://localhost:5173/studio/
+npm run studio        # 自动打开 http://localhost:5173/studio/ （无需 npm install）
 ```
+
+> Windows 若提示「禁止运行脚本」，用 `npm.cmd run studio`，或直接 `node scripts/serve.mjs`。没装 Git 可以在 GitHub 页面点 Code → Download ZIP。
 
 左边填品牌资料（名称、颜色、Logo、标语、标签、背面姓名职位），右边实时看：
 - **3D 工牌**：拖拽、旋转、翻面、放大看细节

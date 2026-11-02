@@ -5,7 +5,7 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "studio": "npx --yes http-server -p 5173 -c-1 . -o /studio/",
+    "studio": "node scripts/serve.mjs",
     "render": "node scripts/render.mjs",
     "print": "node scripts/print.mjs",
     "all": "node scripts/render.mjs --config examples/wqai/brand.json && node scripts/print.mjs --config examples/wqai/brand.json --people examples/wqai/people.csv",
@@ -14,6 +14,19 @@
   "dependencies": {
     "playwright": "^1.45.0"
   },
-  "engines": { "node": ">=18" },
-  "keywords": ["badge", "lanyard", "工牌", "id-card", "event", "gif", "video", "print", "canvas", "playwright"]
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "badge",
+    "lanyard",
+    "工牌",
+    "id-card",
+    "event",
+    "gif",
+    "video",
+    "print",
+    "canvas",
+    "playwright"
+  ]
 }
