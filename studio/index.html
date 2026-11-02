@@ -565,7 +565,7 @@ async function makeShowreel() {
 async function downloadReel() { const r = await makeShowreel(); download(r.blob, r.name); toast(tr('演示动画已下载')); return r; }
 
 // ---------------------------------------------------------------- sharing (X / Instagram / Facebook / LinkedIn / 微博 / 系统分享)
-const ONLINE_URL = 'https://raw.githack.com/tgchtggn29-bit/lanyard-badge-studio/main/studio/index.html';
+const ONLINE_URL = 'https://rawcdn.githack.com/tgchtggn29-bit/lanyard-badge-studio/6ed9f7289744352adbabb7944ea3ef797f48e252/studio/index.html';
 const SHARE_URL = () => (/^https?:$/.test(location.protocol) && !/^(localhost|127\.|0\.0\.0\.0|\[::1\])/.test(location.hostname)) ? location.href.split('#')[0] : ONLINE_URL;
 const shareText = () => LANG === 'en' ? `I designed a custom lanyard badge for ${cfg.name} with Lanyard Badge Studio ✨ Drag it, flip it, print it — try yours 👉` : `我用 Lanyard Badge Studio 给「${cfg.name}」做了一张专属工牌 ✨ 能拖、能翻面、还能直接印刷，你也来试试 👉`;
 function toast(t) { const el = $('toast'); el.textContent = tr(t); el.classList.add('show'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 3200); }
