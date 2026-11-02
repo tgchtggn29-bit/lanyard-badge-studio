@@ -105,7 +105,18 @@
     return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
   }
   const A = (hex, a) => { const [r, g, b] = hexToRgb(hex); return `rgba(${r},${g},${b},${a})`; };
-  const dark = () => T().mode !== 'light';
+  // ---- contrast helpers: everything adapts to light or dark brand backgrounds
+  function lum(hex) { if (!/^#/.test(hex || '')) return 0; const [r, g, b] = hexToRgb(hex).map(v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }); return .2126 * r + .7152 * g + .0722 * b; }
+  function shade(hex, f) { const [r, g, b] = hexToRgb(hex); const h = v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0'); return '#' + h(r * f) + h(g * f) + h(b * f); }
+  const LIGHTBG = () => lum(T().bg) > 0.45;
+  const FG = () => LIGHTBG() ? '#111111' : '#FFFFFF';                    // main text on bg
+  const ONACC = () => lum(T().accent) > 0.42 ? '#0A0A0A' : '#FFFFFF';   // text on accent fills
+  const ACCTXT = () => LIGHTBG() && lum(T().accent) > 0.5 ? shade(T().accent, 0.55) : T().accent; // accent-coloured text
+  const INK = () => LIGHTBG() ? '#111111' : T().bg;                     // dark ink for light scenes
+  const DIM = () => LIGHTBG() ? '#4B5563' : T().dim;
+  const MUTE = () => LIGHTBG() ? '#6B7280' : T().mute;
+  const HAIR = a => LIGHTBG() ? `rgba(0,0,0,${a})` : `rgba(255,255,255,${a})`;
+  const dark = () => T().mode !== 'light' && !LIGHTBG();
 
   function rr(c, x, y, w, h, r) {
     r = Math.min(r, w / 2, h / 2);
@@ -123,7 +134,7 @@
 
   async function setConfig(cfg) {
     C = merge(clone(DEFAULT_CONFIG), cfg || {});
-    if (!C.theme.giant) C.theme.giant = dark() ? C.theme.accent : C.theme.bg;
+    if (!C.theme.giant) C.theme.giant = dark() || LIGHTBG() ? C.theme.accent : C.theme.bg;
     IMG.logo = await loadImage(C.logo);
     IMG.hero = await loadImage(C.card.hero && C.card.hero.image);
     if (global.document && document.fonts) {
@@ -150,10 +161,10 @@
     c.font = `600 19px ${CJK()}`;
     const w = c.measureText(text).width + 46, h = 38;
     rr(c, -w / 2, -h / 2, w, h, h / 2); c.fillStyle = dark() ? '#111' : '#fff'; c.fill();
-    c.lineWidth = 1.6; c.strokeStyle = dark() ? T().accent : T().bg; c.stroke();
-    c.fillStyle = dark() ? T().accent : T().accent2; c.beginPath(); c.arc(-w / 2 + 18, 0, 4, 0, 7); c.fill();
+    c.lineWidth = 1.6; c.strokeStyle = dark() ? T().accent : INK(); c.stroke();
+    c.fillStyle = dark() ? T().accent : ACCTXT(); c.beginPath(); c.arc(-w / 2 + 18, 0, 4, 0, 7); c.fill();
     if (dark()) { c.shadowColor = T().accent; c.shadowBlur = 8; c.fill(); c.shadowBlur = 0; }
-    c.fillStyle = dark() ? T().accent : T().bg; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(text, 7, 1);
+    c.fillStyle = dark() ? T().accent : INK(); c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(text, 7, 1);
     c.restore();
   }
 
@@ -168,13 +179,14 @@
   // ---------------------------------------------------------------- background scene
   function background(c, t) {
     const M = C.motion, th = T();
-    c.fillStyle = dark() ? th.bg : '#F4F6FB'; c.fillRect(0, 0, W, H);
+    c.fillStyle = dark() ? th.bg : (LIGHTBG() ? th.bg : '#F4F6FB'); c.fillRect(0, 0, W, H);
     if (dark()) { glowBlob(c, W, H, 150, 180, 360, .16); glowBlob(c, W, H, 600, 1050, 420, .12); }
     dotGrid(c, W, H, 40, 2, dark() ? A(th.accent, .07) : 'rgba(10,10,10,.06)');
+    if (LIGHTBG()) { glowBlob(c, W, H, 150, 180, 360, .10); glowBlob(c, W, H, 600, 1050, 420, .08); }
     c.textBaseline = 'alphabetic';
-    c.fillStyle = dark() ? th.accent : th.bg; c.beginPath(); c.arc(42, 56, 5, 0, 7); c.fill();
-    c.fillStyle = dark() ? th.text : th.bg; c.font = `800 18px ${CJK()}`; c.textAlign = 'left'; c.fillText(C.header.title, 56, 62);
-    c.fillStyle = th.mute; c.font = `600 13px ${MIX()}`; c.fillText(C.header.sub, 36, 88);
+    c.fillStyle = dark() ? th.accent : ACCTXT(); c.beginPath(); c.arc(42, 56, 5, 0, 7); c.fill();
+    c.fillStyle = dark() ? th.text : INK(); c.font = `800 18px ${CJK()}`; c.textAlign = 'left'; c.fillText(C.header.title, 56, 62);
+    c.fillStyle = MUTE(); c.font = `600 13px ${MIX()}`; c.fillText(C.header.sub, 36, 88);
     c.textAlign = 'right'; c.font = `500 16px ${CJK()}`;
     (C.header.right || []).forEach((l, i) => c.fillText(l, W - 36, 62 + i * 24));
 
@@ -195,7 +207,7 @@
     });
     c.restore();
 
-    c.fillStyle = th.mute; c.textAlign = 'center'; c.font = `500 15px ${CJK()}`; c.fillText(C.credit || '', W / 2, 1246);
+    c.fillStyle = MUTE(); c.textAlign = 'center'; c.font = `500 15px ${CJK()}`; c.fillText(C.credit || '', W / 2, 1246);
 
     // brand pulse (zoom in → zoom out)
     let sc = 1, glow = 0;
@@ -206,7 +218,8 @@
       c.save(); c.translate(W / 2, 1170); c.scale(sc, sc);
       c.font = `900 40px ${MIX()}`; c.textAlign = 'center'; c.textBaseline = 'middle';
       const pw = c.measureText(C.pulse).width;
-      c.fillStyle = dark() ? th.accent : th.bg; c.beginPath(); c.arc(-pw / 2 - 22, 2, 6, 0, 7); c.fill();
+      c.fillStyle = dark() ? th.accent : ACCTXT(); c.beginPath(); c.arc(-pw / 2 - 22, 2, 6, 0, 7); c.fill();
+      if (!dark()) c.fillStyle = INK();
       c.shadowColor = th.accent; c.shadowBlur = dark() ? 10 + 26 * glow : 0; c.fillText(C.pulse, 0, 2); c.shadowBlur = 0;
       c.strokeStyle = A(th.accent, .5); c.lineWidth = 1.5; c.beginPath(); c.moveTo(-pw / 2, 28); c.lineTo(pw / 2, 28); c.stroke();
       c.restore();
@@ -233,7 +246,7 @@
       c.fillStyle = g; c.fillRect(-w / 2, -len, w, len);
     }
     const k = w / 50, words = C.strap && C.strap.length ? C.strap : [C.name];
-    c.fillStyle = th.bg; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillStyle = ONACC(); c.textAlign = 'center'; c.textBaseline = 'middle';
     let i = 0;
     for (let y = -80 * k; y > -len; y -= 135 * k) {
       c.save(); c.translate(0, y); c.rotate(Math.PI / 2);
@@ -265,7 +278,7 @@
     c.fillStyle = th.bg; c.fillRect(x - b, y - b, w + 2 * b, h + 2 * b);
     const gw = c.createRadialGradient(x + w, y, 0, x + w, y, 240 * k); gw.addColorStop(0, A(th.accent, .22)); gw.addColorStop(1, A(th.accent, 0));
     c.fillStyle = gw; c.fillRect(x - b, y - b, w + 2 * b, h + 2 * b);
-    c.strokeStyle = 'rgba(255,255,255,.05)'; c.lineWidth = 1 * k;
+    c.strokeStyle = HAIR(.05); c.lineWidth = 1 * k;
     for (let gx = x - b; gx < x + w + b; gx += 17 * k) { c.beginPath(); c.moveTo(gx, y - b); c.lineTo(gx, y + h + b); c.stroke(); }
     for (let gy = y - b; gy < y + h + b; gy += 17 * k) { c.beginPath(); c.moveTo(x - b, gy); c.lineTo(x + w + b, gy); c.stroke(); }
 
@@ -278,12 +291,12 @@
       c.fillStyle = th.accent; c.beginPath(); c.arc(hx, y + 30 * k, 5 * k, 0, 7); c.fill();
       c.shadowColor = th.accent; c.shadowBlur = 10 * k; c.fill(); c.shadowBlur = 0; hx += 14 * k;
     }
-    c.fillStyle = '#fff'; c.font = `900 ${18 * k}px ${CJK()}`; c.fillText(cd.brand, hx, y + 30 * k);
-    c.fillStyle = th.mute; c.font = `700 ${11 * k}px ${MIX()}`; c.textAlign = 'right'; c.fillText(cd.corner || '', x + w - 18 * k, y + 30 * k);
-    c.strokeStyle = 'rgba(255,255,255,.14)'; c.lineWidth = 1 * k; c.beginPath(); c.moveTo(x + 18 * k, y + 52 * k); c.lineTo(x + w - 18 * k, y + 52 * k); c.stroke();
+    c.fillStyle = FG(); c.font = `900 ${18 * k}px ${CJK()}`; c.fillText(cd.brand, hx, y + 30 * k);
+    c.fillStyle = MUTE(); c.font = `700 ${11 * k}px ${MIX()}`; c.textAlign = 'right'; c.fillText(cd.corner || '', x + w - 18 * k, y + 30 * k);
+    c.strokeStyle = HAIR(.14); c.lineWidth = 1 * k; c.beginPath(); c.moveTo(x + 18 * k, y + 52 * k); c.lineTo(x + w - 18 * k, y + 52 * k); c.stroke();
 
     // kicker + headline
-    c.textAlign = 'left'; c.fillStyle = th.accent; c.fillRect(x + 20 * k, y + 76 * k, 18 * k, 2 * k);
+    c.textAlign = 'left'; c.fillStyle = ACCTXT(); c.fillRect(x + 20 * k, y + 76 * k, 18 * k, 2 * k);
     c.font = `700 ${11 * k}px ${MIX()}`; c.fillText(cd.kicker || '', x + 46 * k, y + 77 * k);
     c.textBaseline = 'alphabetic';
     const lines = cd.headline || [];
@@ -293,8 +306,8 @@
     if (widest > maxW) { hs = hs * maxW / widest; c.font = `900 ${hs}px ${MIX()}`; } else c.font = `900 ${hs}px ${MIX()}`;
     let ly = y + 124 * k;
     lines.forEach((l, i) => {
-      c.fillStyle = '#fff'; c.fillText(l, x + 18 * k, ly);
-      if (i === lines.length - 1 && cd.highlight) { c.fillStyle = th.accent; c.fillText(cd.highlight, x + 18 * k + c.measureText(l).width, ly); }
+      c.fillStyle = FG(); c.fillText(l, x + 18 * k, ly);
+      if (i === lines.length - 1 && cd.highlight) { c.fillStyle = ACCTXT(); c.fillText(cd.highlight, x + 18 * k + c.measureText(l).width, ly); }
       ly += hs * 1.05;
     });
 
@@ -310,7 +323,7 @@
     }
 
     c.fillStyle = th.accent; c.fillRect(x - b, by, w + 2 * b, bandH + b);
-    c.fillStyle = th.bg; c.textAlign = 'left'; c.textBaseline = 'alphabetic';
+    c.fillStyle = ONACC(); c.textAlign = 'left'; c.textBaseline = 'alphabetic';
     let bt = 27 * k; c.font = `900 ${bt}px ${CJK()}`;
     const btw = c.measureText(cd.bandTitle).width, room = w - 36 * k - 90 * k;
     if (btw > room) { bt *= room / btw; c.font = `900 ${bt}px ${CJK()}`; }
@@ -324,15 +337,15 @@
     const th = T(), cs = 24 * k, step = 34.6 * k, rowH = 24 * k, gx = x + 20 * k;
     const gridH = 12 * k + 4 * rowH;
     const gy = top + Math.max(0, (areaH - gridH) / 2) + 2 * k;
-    c.textBaseline = 'middle'; c.textAlign = 'center'; c.font = `700 ${10 * k}px ${LAT()}`; c.fillStyle = th.mute;
+    c.textBaseline = 'middle'; c.textAlign = 'center'; c.font = `700 ${10 * k}px ${LAT()}`; c.fillStyle = MUTE();
     ['M', 'T', 'W', 'T', 'F', 'S', 'S'].forEach((d, i) => c.fillText(d, gx + i * step + cs / 2, gy));
     const hot = hero.highlights || [], today = hero.today;
     for (let r = 0; r < 4; r++) for (let q = 0; q < 7; q++) {
       const n = r * 7 + q + 1, cx = gx + q * step, cy = gy + 12 * k + r * rowH, ch = cs - 4 * k;
       rr(c, cx, cy, cs, ch, 5 * k);
-      if (n === today) { c.fillStyle = th.accent; c.fill(); c.fillStyle = th.bg; }
-      else if (hot.includes(n)) { c.strokeStyle = th.accent; c.lineWidth = 1.4 * k; c.stroke(); c.fillStyle = th.accent; }
-      else { c.fillStyle = 'rgba(255,255,255,.06)'; c.fill(); c.fillStyle = '#8f8f8f'; }
+      if (n === today) { c.fillStyle = th.accent; c.fill(); c.fillStyle = ONACC(); }
+      else if (hot.includes(n)) { c.strokeStyle = ACCTXT(); c.lineWidth = 1.4 * k; c.stroke(); c.fillStyle = ACCTXT(); }
+      else { c.fillStyle = HAIR(.06); c.fill(); c.fillStyle = LIGHTBG() ? '#7a7a7a' : '#8f8f8f'; }
       c.font = `700 ${10 * k}px ${LAT()}`; c.fillText(String(n), cx + cs / 2, cy + ch / 2 + 1 * k);
     }
   }
@@ -348,7 +361,7 @@
     c.fillStyle = A(th.accent, .08); for (let gy = y + 10 * k; gy < y + h; gy += 17 * k) for (let gx = x + 10 * k; gx < x + w; gx += 17 * k) c.fillRect(gx, gy, 1.6 * k, 1.6 * k);
     // top accent strip
     c.fillStyle = th.accent; c.fillRect(x - b, y - b, w + 2 * b, 46 * k + b);
-    c.fillStyle = th.bg; c.textBaseline = 'middle'; c.textAlign = 'left'; c.font = `900 ${16 * k}px ${CJK()}`; c.fillText(C.card.brand, x + 18 * k, y + 23 * k);
+    c.fillStyle = ONACC(); c.textBaseline = 'middle'; c.textAlign = 'left'; c.font = `900 ${16 * k}px ${CJK()}`; c.fillText(C.card.brand, x + 18 * k, y + 23 * k);
     c.textAlign = 'right'; c.font = `800 ${11 * k}px ${MIX()}`; c.fillText(person.id || '', x + w - 18 * k, y + 23 * k);
     // giant watermark word
     c.save(); c.translate(x + w / 2, y + h * 0.56); c.rotate(-Math.PI / 2); c.textAlign = 'center';
@@ -358,15 +371,15 @@
     c.textAlign = 'left'; c.textBaseline = 'alphabetic';
     const iy = y + h - 150 * k;
     c.fillStyle = th.accent; c.fillRect(x + 18 * k, iy - 60 * k, 18 * k, 2 * k);
-    c.fillStyle = th.mute; c.font = `700 ${10 * k}px ${MIX()}`; c.fillText('HOLDER', x + 44 * k, iy - 56 * k);
+    c.fillStyle = MUTE(); c.font = `700 ${10 * k}px ${MIX()}`; c.fillText('HOLDER', x + 44 * k, iy - 56 * k);
     let ns = 34 * k; c.font = `900 ${ns}px ${CJK()}`; const nw = c.measureText(person.name).width; if (nw > w - 36 * k) { ns *= (w - 36 * k) / nw; c.font = `900 ${ns}px ${CJK()}`; }
-    c.fillStyle = '#fff'; c.fillText(person.name, x + 18 * k, iy);
-    c.fillStyle = th.dim; c.font = `600 ${14 * k}px ${CJK()}`; c.fillText(person.title || '', x + 18 * k, iy + 28 * k);
-    c.strokeStyle = 'rgba(255,255,255,.14)'; c.lineWidth = 1 * k; c.beginPath(); c.moveTo(x + 18 * k, iy + 50 * k); c.lineTo(x + w - 18 * k, iy + 50 * k); c.stroke();
-    c.fillStyle = th.mute; c.font = `500 ${10 * k}px ${CJK()}`; c.fillText(person.note || '', x + 18 * k, iy + 72 * k);
+    c.fillStyle = FG(); c.fillText(person.name, x + 18 * k, iy);
+    c.fillStyle = DIM(); c.font = `600 ${14 * k}px ${CJK()}`; c.fillText(person.title || '', x + 18 * k, iy + 28 * k);
+    c.strokeStyle = HAIR(.14); c.lineWidth = 1 * k; c.beginPath(); c.moveTo(x + 18 * k, iy + 50 * k); c.lineTo(x + w - 18 * k, iy + 50 * k); c.stroke();
+    c.fillStyle = MUTE(); c.font = `500 ${10 * k}px ${CJK()}`; c.fillText(person.note || '', x + 18 * k, iy + 72 * k);
     // bottom band
     c.fillStyle = th.accent; c.fillRect(x - b, y + h - 40 * k, w + 2 * b, 40 * k + b);
-    c.fillStyle = th.bg; c.font = `800 ${11 * k}px ${MIX()}`; c.textBaseline = 'middle'; c.fillText(C.card.bandSub || '', x + 18 * k, y + h - 20 * k);
+    c.fillStyle = ONACC(); c.font = `800 ${11 * k}px ${MIX()}`; c.textBaseline = 'middle'; c.fillText(C.card.bandSub || '', x + 18 * k, y + h - 20 * k);
     c.restore();
   }
 
@@ -467,16 +480,16 @@
     dotGrid(x, CW, CH, 48, 3, A(th.accent, .07));
     x.save(); x.font = `900 420px ${LAT()}`; x.textAlign = 'center'; x.lineWidth = 3; x.strokeStyle = A(th.accent, .35); x.strokeText(C.giantWord, CW / 2, 1150); x.restore();
     x.textAlign = 'left'; x.textBaseline = 'alphabetic';
-    x.fillStyle = th.accent; x.fillRect(80, 250, 40, 4); x.font = `800 28px ${MIX()}`; x.fillText(P.kicker, 140, 262);
-    x.fillStyle = '#fff'; x.font = `900 120px ${CJK()}`; (P.title || []).forEach((l, i) => x.fillText(l, 76, 420 + i * 140));
+    x.fillStyle = ACCTXT(); x.fillRect(80, 250, 40, 4); x.font = `800 28px ${MIX()}`; x.fillText(P.kicker, 140, 262);
+    x.fillStyle = FG(); x.font = `900 120px ${CJK()}`; (P.title || []).forEach((l, i) => x.fillText(l, 76, 420 + i * 140));
     x.fillStyle = th.accent; x.fillRect(80, 600, 520, 6);
-    x.fillStyle = th.dim; x.font = `600 40px ${CJK()}`; x.fillText(P.sub[0] || '', 80, 680);
-    x.fillStyle = th.mute; x.font = `500 34px ${CJK()}`; x.fillText(P.sub[1] || '', 80, 735);
+    x.fillStyle = DIM(); x.font = `600 40px ${CJK()}`; x.fillText(P.sub[0] || '', 80, 680);
+    x.fillStyle = MUTE(); x.font = `500 34px ${CJK()}`; x.fillText(P.sub[1] || '', 80, 735);
     x.save(); x.translate(420, 40); x.scale(1.45, 1.45); drawBadge(x, { dy: -120, th: 0.04, ph: -0.05, yaw: 0.12 }); x.restore();
     const pos = [[250, 880], [230, 980], [270, 1080], [240, 1180], [760, 1390], [1040, 1390]];
     [...new Set([...(P.tags || []), ...(C.tags || [])])].slice(0, 6).forEach((t, i) => { x.save(); x.translate(...pos[i]); x.scale(1.5, 1.5); pill(x, 0, 0, t, 1, 1); x.restore(); });
-    x.textAlign = 'center'; x.fillStyle = th.accent; x.font = `900 72px ${MIX()}`; x.shadowColor = th.accent; x.shadowBlur = 24; x.fillText(P.handle.replace(/^@/, '') || C.name, CW / 2, 1540); x.shadowBlur = 0;
-    x.fillStyle = th.mute; x.font = `500 28px ${CJK()}`; x.fillText(P.channels || '', CW / 2, 1600);
+    x.textAlign = 'center'; x.fillStyle = ACCTXT(); x.font = `900 72px ${MIX()}`; x.shadowColor = th.accent; x.shadowBlur = 24; x.fillText(P.handle.replace(/^@/, '') || C.name, CW / 2, 1540); x.shadowBlur = 0;
+    x.fillStyle = MUTE(); x.font = `500 28px ${CJK()}`; x.fillText(P.channels || '', CW / 2, 1600);
     return cv;
   }
 
@@ -489,15 +502,15 @@
     dotGrid(x, CW, CH, 40, 3, A(th.accent, .07));
     x.save(); x.font = `900 380px ${LAT()}`; x.textAlign = 'center'; x.lineWidth = 2.5; x.strokeStyle = A(th.accent, .28); x.strokeText(C.giantWord, 930, 480); x.restore();
     x.textAlign = 'left'; x.textBaseline = 'alphabetic';
-    x.fillStyle = th.accent; x.fillRect(90, 140, 36, 4); x.font = `800 24px ${MIX()}`; x.fillText(P.kicker, 140, 151);
-    x.fillStyle = '#fff'; let ts = 104; x.font = `900 ${ts}px ${CJK()}`; const title = (P.title || []).join(' ');
+    x.fillStyle = ACCTXT(); x.fillRect(90, 140, 36, 4); x.font = `800 24px ${MIX()}`; x.fillText(P.kicker, 140, 151);
+    x.fillStyle = FG(); let ts = 104; x.font = `900 ${ts}px ${CJK()}`; const title = (P.title || []).join(' ');
     const tw = x.measureText(title).width; if (tw > 620) { ts *= 620 / tw; x.font = `900 ${ts}px ${CJK()}`; } x.fillText(title, 84, 280);
     x.fillStyle = th.accent; x.fillRect(90, 312, 560, 5);
-    x.fillStyle = th.dim; x.font = `600 38px ${CJK()}`; x.fillText(P.sub[0] || '', 90, 378);
-    x.fillStyle = th.mute; x.font = `500 32px ${CJK()}`; x.fillText(P.sub[1] || '', 90, 428);
-    x.save(); x.fillStyle = th.accent; x.font = `900 40px ${CJK()}`; x.shadowColor = th.accent; x.shadowBlur = 18; x.fillText(P.handle || '', 90, 506);
+    x.fillStyle = DIM(); x.font = `600 38px ${CJK()}`; x.fillText(P.sub[0] || '', 90, 378);
+    x.fillStyle = MUTE(); x.font = `500 32px ${CJK()}`; x.fillText(P.sub[1] || '', 90, 428);
+    x.save(); x.fillStyle = ACCTXT(); x.font = `900 40px ${CJK()}`; x.shadowColor = th.accent; x.shadowBlur = 18; x.fillText(P.handle || '', 90, 506);
     const hw = x.measureText(P.handle || '').width; x.restore();
-    x.fillStyle = th.mute; x.font = `500 24px ${CJK()}`; x.fillText(P.channels || '', 90 + hw + 30, 500);
+    x.fillStyle = MUTE(); x.font = `500 24px ${CJK()}`; x.fillText(P.channels || '', 90 + hw + 30, 500);
     x.save(); x.translate(930 - 360 * 0.9, -230); x.scale(0.9, 0.9); drawBadge(x, { dy: -120, th: 0.04, ph: -0.07, yaw: 0.1 }); x.restore();
     P.tags.slice(0, 4).forEach((t, i) => { x.save(); x.translate(1250, 150 + i * 100); x.scale(1.3, 1.3); pill(x, 0, 0, t, 1, 1); x.restore(); });
     return cv;
@@ -505,9 +518,9 @@
 
   // ---------------------------------------------------------------- business cards (名片), 90 × 54 mm, 3 styles
   const NAMECARD_STYLES = {
-    grid:    { label: '暗夜网格', palette: th => ({ bg: th.bg, fg: '#FFFFFF', sub: th.dim, mute: th.mute, acc: th.accent, onAcc: th.bg, line: 'rgba(255,255,255,.14)', grid: 'rgba(255,255,255,.05)', mark: A(th.accent, .30), glow: true }) },
-    neon:    { label: '品牌色底', palette: th => ({ bg: th.accent, fg: th.bg, sub: A(th.bg, .75), mute: A(th.bg, .6), acc: th.bg, onAcc: th.accent, line: A(th.bg, .25), grid: A(th.bg, .06), mark: A(th.bg, .14), glow: false }) },
-    minimal: { label: '极简白', palette: th => ({ bg: '#FFFFFF', fg: '#111111', sub: '#555555', mute: '#8A8A8A', acc: th.accent, onAcc: th.bg, line: 'rgba(0,0,0,.12)', grid: 'rgba(0,0,0,.035)', mark: 'rgba(0,0,0,.06)', glow: false, ink: th.bg }) }
+    grid:    { label: '暗夜网格', palette: th => ({ bg: th.bg, fg: FG(), sub: DIM(), mute: MUTE(), acc: ACCTXT(), onAcc: ONACC(), line: HAIR(.14), grid: HAIR(.05), mark: A(th.accent, .30), glow: !LIGHTBG() }) },
+    neon:    { label: '品牌色底', palette: th => ({ bg: th.accent, fg: ONACC(), sub: A(ONACC(), .75), mute: A(ONACC(), .6), acc: ONACC(), onAcc: th.accent, line: A(ONACC(), .25), grid: A(ONACC(), .06), mark: A(ONACC(), .14), glow: false }) },
+    minimal: { label: '极简白', palette: th => ({ bg: '#FFFFFF', fg: '#111111', sub: '#555555', mute: '#8A8A8A', acc: th.accent, onAcc: ONACC(), line: 'rgba(0,0,0,.12)', grid: 'rgba(0,0,0,.035)', mark: 'rgba(0,0,0,.06)', glow: false, ink: lum(th.bg) > 0.45 ? '#111111' : th.bg }) }
   };
   function nameCard(c, x, y, w, h, side, style, person, opt) {
     opt = opt || {}; const st = NAMECARD_STYLES[style] || NAMECARD_STYLES.grid, P = st.palette(T()), b = opt.bleed || 0, k = w / 540;

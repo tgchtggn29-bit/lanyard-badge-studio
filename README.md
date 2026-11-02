@@ -70,6 +70,34 @@ npm run studio        # 自动打开 http://localhost:5173/studio/ （无需 npm
 - **海报 & 横幅**、**名片**（三选一）、**印刷稿**：一键下载 PNG
 - 改好后点「导出 brand.json」，交给命令行出成片
 
+#### 对话助手 · AI 设计师
+
+右下角的对话助手有三种工作方式：
+
+| 模式 | 怎么开启 | 适合 |
+|---|---|---|
+| **本地规则** | 默认 | 不联网也能用：听得懂「蓝白配色的 XX 工牌」「我们是咖啡店」「名字 张三 职位 设计师」这类说法，自动配色、写文案和标签 |
+| **自带 Key** | 点 ⚙ 接入 AI，选 DeepSeek / 通义千问 / Kimi / 智谱 / 硅基流动 / OpenAI / Claude / OpenRouter / 自定义，填你自己的 API Key | 个人使用。Key 只存在你的浏览器里；用 `npm run studio` 打开时经本地服务器转发，避开浏览器跨域限制 |
+| **站长体验额度** | 部署时在服务器上设置 `LLM_API_KEY`（见下） | 你把工作台放到自己服务器上，让访客免 Key 体验 AI 设计 |
+
+**防滥用限制**（体验额度模式下由服务器强制执行，Key 永远不会发到浏览器）：
+
+```bash
+LLM_API_KEY=sk-xxx LLM_PROVIDER=deepseek \
+LLM_PER_IP_DAY=20 LLM_DAILY_CAP=500 LLM_COOLDOWN_SEC=4 \
+node scripts/serve.mjs --host 0.0.0.0 --port 5173 --no-open
+```
+
+- 每个访客 IP 每天 `LLM_PER_IP_DAY` 次（默认 20），全站每天 `LLM_DAILY_CAP` 次（默认 500），两次请求至少间隔 `LLM_COOLDOWN_SEC` 秒（默认 4）
+- 每次输入最多 300 字（网页）/ 400 字（服务器），单次回复最多 1500 tokens
+- AI 只处理工牌、名片、海报相关的设计请求，无关请求（写代码、闲聊等）会被礼貌拒绝
+- 转发接口只放行已知的大模型服务商域名，不能被当成通用代理
+- 在 Nginx / CDN 后面部署时加 `TRUST_PROXY=1`，按真实访客 IP 计数
+
+#### 分享
+
+每张可以下载的图（预览图、海报、横幅、名片、印刷稿、「看细节」大图）下面都有分享栏：**X、Instagram、Facebook、LinkedIn、微博、复制链接**；手机上还有「📤 分享图片」，可以直接发到微信、Instagram 等 App。分享文案会带上工作台链接，朋友点开就能做自己的工牌。
+
 ### 2. 命令行出全套成片
 
 需要 Node.js 18+ 和 [ffmpeg](https://ffmpeg.org/download.html)。
