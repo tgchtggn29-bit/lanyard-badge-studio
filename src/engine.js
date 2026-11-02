@@ -387,15 +387,18 @@
   function holder(c, side, person) {
     const w = 316, h = 436, dk = dark();
     c.save();
-    c.translate(0, h / 2); c.transform(Math.cos(YAW), Math.sin(YAW) * 0.10, 0, 1, 0, 0); c.translate(0, -h / 2);
+    // YAW past ±90° shows the other side (a real flip), never mirrored text
+    const cy = Math.cos(YAW), ax = Math.max(0.02, Math.abs(cy));
+    if (cy < 0) side = side === 'back' ? 'front' : 'back';
+    c.translate(0, h / 2); c.transform(ax, Math.sin(YAW) * 0.10, 0, 1, 0, 0); c.translate(0, -h / 2);
     c.save(); c.shadowColor = dk ? A(T().accent, .18) : 'rgba(10,10,10,.28)'; c.shadowBlur = 36; c.shadowOffsetY = 16;
     rr(c, -w / 2, 0, w, h, 26); c.fillStyle = T().holder; c.fill(); c.restore();
     rr(c, -w / 2, 0, w, h, 26); c.strokeStyle = 'rgba(255,255,255,.7)'; c.lineWidth = 3; c.stroke();
     rr(c, -40, 16, 80, 14, 7); c.fillStyle = 'rgba(10,10,10,.12)'; c.fill();
     if (side === 'back') cardBack(c, -136, 46, 272, 370, {}, person); else cardFront(c, -136, 46, 272, 370);
     c.save(); rr(c, -w / 2, 0, w, h, 26); c.clip();
-    const gl = c.createLinearGradient(-w / 2, 0, w / 2, h), gq = clamp(.5 + YAW * 0.9, .12, .88);
-    gl.addColorStop(gq - .08, 'rgba(255,255,255,0)'); gl.addColorStop(gq, `rgba(255,255,255,${0.18 + Math.abs(YAW) * 0.35})`); gl.addColorStop(gq + .08, 'rgba(255,255,255,0)');
+    const gl = c.createLinearGradient(-w / 2, 0, w / 2, h), gq = clamp(.5 + Math.sin(YAW) * 0.9, .12, .88);
+    gl.addColorStop(gq - .08, 'rgba(255,255,255,0)'); gl.addColorStop(gq, `rgba(255,255,255,${0.18 + Math.abs(Math.sin(YAW)) * 0.35})`); gl.addColorStop(gq + .08, 'rgba(255,255,255,0)');
     c.fillStyle = gl; c.fillRect(-w / 2, 0, w, h); c.restore();
     c.restore();
   }
@@ -458,6 +461,39 @@
     return cv;
   }
   // just the plastic holder + card (front or back), for the interactive 3D viewer
+  // 8-second studio showreel: drop → drag & swing → flip to back → flip back & zoom.  Used for sharing.
+  const SHOWREEL = 8;
+  const easeInOut = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  function showreel(t, sc, lang) {
+    sc = sc || 1; const cv = mk(W * sc, H * sc), c = cv.getContext('2d'); c.scale(sc, sc);
+    const M = C.motion; let P = { dy: 0, th: 0, ph: 0, yaw: 0, cord: 0 }, cursor = null, zoom = 1, step = 0;
+    if (t < 2.2) { P = pose(M.dropAt - 0.1 + t); step = 0; }
+    else if (t < 4.4) {
+      const u = t - 2.2; step = 1;
+      if (u < 1.0) { const e = easeInOut(u); P.th = 0.38 * e; P.ph = -0.14 * e; P.yaw = 0.28 * e; cursor = { a: Math.min(1, u * 4), press: u > 0.15 }; }
+      else { const tau = u - 1.0; P.th = 0.38 * Math.exp(-1.5 * tau) * Math.cos(7.6 * tau); P.ph = -0.3 * Math.exp(-1.9 * tau) * Math.sin(7.6 * tau);
+        P.yaw = 0.28 * Math.exp(-1.7 * tau) * Math.cos(10 * tau); if (tau < 0.35) cursor = { a: 1 - tau / 0.35, press: false }; }
+    } else if (t < 6.3) { step = 2; P.yaw = Math.PI * easeInOut(clamp((t - 4.5) / 1.1, 0, 1)); P.th = 0.015 * Math.sin(t * 2.2); }
+    else { step = 3; P.yaw = Math.PI + Math.PI * easeInOut(clamp((t - 6.3) / 0.9, 0, 1)); zoom = 1 + 0.38 * easeInOut(clamp((t - 6.5) / 1.1, 0, 1)); P.th = 0.015 * Math.sin(t * 2.2); }
+    background(c, M.settleAt);
+    c.save(); if (zoom !== 1) { c.translate(360, 700); c.scale(zoom, zoom); c.translate(-360, -700); } drawBadge(c, P); c.restore();
+    if (cursor) {                       // a "hand" that grabs the card
+      const R = L + 56 + 20 + 190, x = PX - Math.sin(P.th) * R, y = PY + P.dy + Math.cos(P.th) * R;
+      c.save(); c.globalAlpha = cursor.a; c.fillStyle = 'rgba(255,255,255,.92)'; c.strokeStyle = T().accent; c.lineWidth = 3;
+      c.beginPath(); c.arc(x, y, cursor.press ? 17 : 22, 0, 7); c.fill(); c.stroke();
+      c.beginPath(); c.arc(x, y, cursor.press ? 30 : 36, 0, 7); c.strokeStyle = A(T().accent, .45); c.stroke(); c.restore();
+    }
+    // step caption
+    const caps = lang === 'en' ? ['Drop', 'Drag & swing', 'Flip to the back', 'Flip & zoom in'] : ['掉落 · Drop', '拖拽晃动 · Drag', '翻面看背面 · Flip', '放大看细节 · Zoom'];
+    c.save(); c.font = `800 22px ${MIX()}`; const tw = c.measureText(caps[step]).width, pw = tw + 90, py = 150;
+    rr(c, W / 2 - pw / 2, py - 26, pw, 52, 26); c.fillStyle = 'rgba(12,12,12,.86)'; c.fill(); c.strokeStyle = T().accent; c.lineWidth = 2; c.stroke();
+    c.fillStyle = T().accent; c.beginPath(); c.arc(W / 2 - pw / 2 + 28, py, 6, 0, 7); c.fill();
+    c.fillStyle = '#fff'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(caps[step], W / 2 + 10, py + 1);
+    for (let i = 0; i < 4; i++) { c.beginPath(); c.arc(W / 2 - 27 + i * 18, py + 44, 4, 0, 7); c.fillStyle = i === step ? T().accent : 'rgba(255,255,255,.3)'; c.fill(); }
+    c.restore();
+    return cv;
+  }
+
   function holderCanvas(side, sc, person) {
     sc = sc || 2; const cv = mk(380 * sc, 500 * sc), c = cv.getContext('2d'); c.scale(sc, sc); c.translate(190, 24);
     YAW = 0; holder(c, side, person); return cv;
@@ -618,7 +654,7 @@
 
   global.BadgeEngine = {
     W, H, DEFAULT_CONFIG, setConfig, get config() { return C; },
-    frame, still, badgeOnly, holderCanvas, scene, nameCardCanvas, printNameCard, NAMECARD_STYLES: Object.fromEntries(Object.entries(NAMECARD_STYLES).map(([k, v]) => [k, v.label])), poster, banner, printCard, printLanyard,
+    frame, still, badgeOnly, holderCanvas, scene, showreel, SHOWREEL, nameCardCanvas, printNameCard, NAMECARD_STYLES: Object.fromEntries(Object.entries(NAMECARD_STYLES).map(([k, v]) => [k, v.label])), poster, banner, printCard, printLanyard,
     cardFront, cardBack, holder, pose, drawBadge, background, findUrls, mm
   };
 })(typeof window !== 'undefined' ? window : globalThis);

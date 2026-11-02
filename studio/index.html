@@ -20,6 +20,12 @@ header{height:56px;display:flex;align-items:center;gap:12px;padding:0 18px;borde
 header .dot{width:8px;height:8px;border-radius:50%;background:var(--acc);box-shadow:0 0 12px var(--acc)}
 header h1{font-size:15px;margin:0;font-weight:800;letter-spacing:.02em}
 header .sp{flex:1}
+.langsw{display:flex;border:1px solid var(--line);border-radius:999px;padding:2px;gap:2px}
+.langsw button{border:0;padding:5px 12px;background:transparent}
+.langsw button.on{background:#fff;color:#0A0A0A}
+a.btn.gh{display:inline-flex;align-items:center;gap:6px;background:#fff;color:#0A0A0A;border-color:#fff;text-decoration:none;font-weight:700}
+a.btn.gh:hover{background:var(--acc);border-color:var(--acc);color:#0A0A0A}
+@media (max-width:860px){header h1{font-size:13px}header .btn,header button{padding:6px 10px}}
 button,.btn{background:#1b1b1b;color:var(--text);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font:600 13px inherit;font-family:inherit;cursor:pointer;white-space:nowrap}
 button:hover,.btn:hover{border-color:var(--acc);color:var(--acc)}
 button.primary{background:var(--acc);color:#0A0A0A;border-color:var(--acc)}
@@ -100,6 +106,8 @@ section.view{position:relative;overflow:hidden;display:flex;flex-direction:colum
   <span class="sp"></span>
   <label class="btn">导入配置<input id="importCfg" type="file" accept=".json" hidden></label>
   <button id="exportCfg" class="primary">导出 brand.json</button>
+  <div class="langsw"><button type="button" data-lang="zh">中文</button><button type="button" data-lang="en">EN</button></div>
+  <a class="btn gh" href="https://github.com/tgchtggn29-bit/lanyard-badge-studio" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
 </header>
 <main>
 <aside>
@@ -289,7 +297,7 @@ let tmr; document.querySelector('aside').addEventListener('input', e => { if (e.
 
 $('exportCfg').onclick = () => download(new Blob([JSON.stringify(cfg, null, 2)], { type: 'application/json' }), 'brand.json');
 $('importCfg').onchange = async e => { const f = e.target.files[0]; if (!f) return; cfg = E.DEFAULT_CONFIG && Object.assign(JSON.parse(JSON.stringify(E.DEFAULT_CONFIG)), JSON.parse(await f.text())); fillForm(); apply(); };
-function download(blob, name) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
+function download(blob, name) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.style.display = 'none'; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000); }
 const dlCanvas = (cv, name) => cv.toBlob(b => download(b, name), 'image/png');
 
 // ---------------------------------------------------------------- apply config everywhere
@@ -304,6 +312,7 @@ async function apply() {
   $('faceFront').replaceChildren(faces.front); $('faceBack').replaceChildren(faces.back);
   renderPoster(); renderPrint(); renderNameCards();
   $('animShare').replaceChildren(shareBar(() => E.still(1.5), '工牌.png'));
+  reelCache = null; translateDOM();
 }
 
 // ---------------------------------------------------------------- 3D badge: verlet lanyard + CSS 3D card
@@ -350,7 +359,7 @@ function setZoom(z) { zoom = Math.max(0.6, Math.min(2.6, z)); $('zoom').value = 
 $('zoom').oninput = e => setZoom(+e.target.value);
 function doFlip() { yawTarget = Math.round(yaw / 180) * 180 + 180; pendingFlip = true; setTimeout(() => pendingFlip = false, 1200); }
 $('btnFlip').onclick = doFlip; $('btnDrop').onclick = () => { drop(); yaw = yawTarget = 0; tilt = 0; };
-$('btnDetail').onclick = () => { const side = (Math.round(yaw / 180) % 2 + 2) % 2 ? 'back' : 'front'; const cv = E.holderCanvas(side, 4); $('lbImg').src = cv.toDataURL(); $('lbShare').replaceChildren(shareBar(() => cv, `工牌_${side === 'back' ? '背面' : '正面'}.png`)); $('lightbox').style.display = 'block'; };
+$('btnDetail').onclick = () => { const side = (Math.round(yaw / 180) % 2 + 2) % 2 ? 'back' : 'front'; const cv = E.holderCanvas(side, 4); $('lbImg').src = cv.toDataURL(); $('lbShare').replaceChildren(shareBar(() => cv, `工牌_${side === 'back' ? '背面' : '正面'}.png`)); translateDOM($('lbShare')); $('lightbox').style.display = 'block'; };
 $('lightbox').onclick = () => $('lightbox').style.display = 'none';
 
 // Physics runs on a fixed 1/120 s step so it behaves the same on 60 Hz / 120 Hz screens.
@@ -467,30 +476,121 @@ $('btnRec').onclick = () => {
   setTimeout(() => mr.stop(), E.config.motion.duration * 1000);
 };
 
+// ---------------------------------------------------------------- i18n (中文 / English)
+const I18N = {
+  'Lanyard Badge Studio · 工牌工作室': 'Lanyard Badge Studio', '导入配置': 'Import config', '导出 brand.json': 'Export brand.json',
+  '品牌': 'Brand', '品牌名称': 'Brand name', '背景大字（建议 2–6 个字母）': 'Giant background word (2–6 letters)', 'Logo（可选，PNG/SVG）': 'Logo (optional, PNG/SVG)',
+  '品牌色': 'Brand colours', '主色': 'Accent', '辅助色': 'Accent 2', '底色': 'Background', '工牌正面': 'Badge front', '卡片品牌': 'Card brand', '右上角': 'Top-right',
+  '小标题': 'Kicker', '大标题（每行一句，最后一行后面接高亮词）': 'Headline (one line each; highlight word follows the last line)', '高亮词': 'Highlight word',
+  '中间图案': 'Centre artwork', '高亮日期': 'Highlighted days', '今天': 'Today', '中间图片': 'Centre image', '底条标题': 'Band title', '底条副标题': 'Band subtitle',
+  '工牌背面': 'Badge back', '姓名': 'Name', '编号': 'ID', '职位': 'Title', '备注': 'Note', '名片': 'Business cards', '名片样式': 'Card style', '名片口号': 'Card slogan',
+  '电话': 'Phone', '微信': 'WeChat', '邮箱': 'Email', '地址': 'Address', '挂绳 & 动画': 'Lanyard & animation', '挂绳文字（用 | 分隔）': 'Lanyard text (separate with |)',
+  '浮动标签（每行一个，最多 12 个）': 'Floating tags (one per line, up to 12)', '放大缩小的品牌字': 'Pulsing brand text', '左上角标题 / 副标题': 'Top-left title / subtitle',
+  '右上角两行': 'Top-right two lines', '底部署名': 'Credit line', '海报 / 横幅': 'Poster / banner', '标题（每行一句）': 'Title (one line each)', '副标题（两行）': 'Subtitle (two lines)',
+  '账号': 'Handle', '渠道': 'Channels', '3D 工牌（可拖拽）': '3D badge (drag me)', '动画预览': 'Animation', '海报 & 横幅': 'Posters & banners', '印刷稿': 'Print files',
+  '拖动晃动 · 右键/Shift 拖动旋转 · 双击翻面 · 滚轮缩放': 'Drag to swing · Right-drag / Shift-drag to spin · Double-click to flip · Scroll to zoom',
+  '翻面': 'Flip', '重新掉落': 'Drop again', '看细节': 'Details', '动画预览（实时，不含动态模糊）': 'Live preview (no motion blur)', '录制一遍 WebM': 'Record one loop (WebM)',
+  '分享给朋友': 'Share with friends', '微博': 'Weibo', '复制链接': 'Copy link', '复制': 'Copy', '🎬 8秒动画': '🎬 8s video', '📤 分享': '📤 Share',
+  'MP4 / GIF / 4K / 首帧即封面 等成片请用命令行：': 'For MP4 / GIF / 4K / cover-first videos, use the CLI:',
+  '停稳预览图': 'Settled preview', '1080×1920 · 无动态模糊，适合当封面': '1080×1920 · no motion blur, great as a cover', '下载 PNG': 'Download PNG',
+  '透明底工牌': 'Transparent badge', '可贴到任何背景上': 'Drop it on any background', '3:4 海报': '3:4 poster', '1242×1660 · 主页背景 / 笔记封面': '1242×1660 · profile background / post cover',
+  '横幅': 'Banner', '1440×600 · 紧凑排版': '1440×600 · compact layout', '已选用': 'selected', '90×54 mm · 点击选用这个样式': '90×54 mm · click to use this style',
+  '下载正面（600dpi）': 'Front (600 dpi)', '下载背面（600dpi）': 'Back (600 dpi)', '暗夜网格': 'Dark grid', '品牌色底': 'Brand colour', '极简白': 'Minimal white',
+  '名片印刷': 'Printing business cards', '左侧「名片」里填电话、微信、邮箱、地址；背面姓名职位跟工牌背面共用。': 'Fill phone / WeChat / email / address under "Business cards" on the left; the name and title are shared with the badge back.',
+  '批量每人一张：': 'One per person:', '54×85.6 mm + 3 mm 出血 · 下载为 600 dpi': '54×85.6 mm + 3 mm bleed · downloads at 600 dpi', '挂绳': 'Lanyard',
+  '20×900 mm 热转印 · 下载为 300 dpi': '20×900 mm heat transfer · downloads at 300 dpi', '给打印店的完整印刷包': 'Full print package for the print shop',
+  '带裁切线的 PDF、出血版 PDF、色值说明（HEX / RGB / CMYK 参考）、批量员工背面，用命令行一次导出：': 'PDFs with crop marks, bleed-only PDFs, colour specs (HEX / RGB / CMYK reference) and batch staff backs, exported in one CLI run:',
+  '详见 docs/PRINT_GUIDE.md': 'See docs/PRINT_GUIDE.md', '用你的 AI 智能体做工牌': 'Design it with your AI agent', '装上技能，说一句话就出整套工牌、名片、视频和印刷文件': 'Install the skill, describe your brand, get badges, cards, videos and print files',
+  'Claude 应用': 'Claude app', '其他智能体': 'Other agents', '复制提示词': 'Copy prompt', '下载项目并进入目录': 'Download the project and enter the folder',
+  '启动 Claude Code，技能': 'Start Claude Code — the skill', '会自动加载': 'loads automatically', '把 Logo 放进文件夹，直接说': 'Put your logo in the folder and just say',
+  '想在任何目录都能用：把技能装到全局': 'Use it from any folder: install the skill globally', 'Windows：': 'Windows:', '下载技能包': 'Download the skill',
+  '打开 Claude（网页 / 桌面 / 手机），在': 'Open Claude (web / desktop / mobile), go to', '设置': 'Settings', '里找到': 'and find', '技能（Skills）': 'Skills', '，上传这个 zip': ', then upload this zip',
+  '新建对话，上传 Logo 和品牌资料，说': 'Start a chat, upload your logo and brand materials, and say',
+  '技能包里带了渲染引擎和脚本。对话环境能运行代码时，Claude 会直接出预览图；也可以让它把 brand.json 给你，点左上角「导入配置」在这里查看和下载。': 'The skill bundles the engine and scripts. Where Claude can run code it renders previews directly; otherwise ask for the brand.json and use "Import config" here to preview and download.',
+  '用 Codex / Cursor / Windsurf / Trae / 通义灵码等打开本项目文件夹，智能体会读取': 'Open this project in Codex / Cursor / Windsurf / Trae etc. — the agent reads', '对它说': 'Then say',
+  '支持 Skills 目录的智能体（如 OpenClaw 等）：把': 'Agents with a skills folder (e.g. OpenClaw): copy', '复制到它的 skills 目录即可。': 'into its skills folder.',
+  '没有智能体也行：把需求和当前配置复制给 ChatGPT / 豆包 / DeepSeek / Kimi 等任何 AI，再把它返回的 JSON 粘贴回来。': 'No agent? Copy your request plus the current config to any chat AI (ChatGPT, DeepSeek, Kimi…), then paste the JSON it returns.',
+  '① 你的需求': '① Your request', '② 粘贴 AI 返回的 JSON': '② Paste the JSON the AI returns', '套用到工牌': 'Apply to badge', '留空则用海报副标题': 'Leave empty to use the poster subtitle',
+  '缩放': 'Zoom', '下载图片并打开 X 发推': 'Download and post on X', 'Instagram 不支持网页直接发帖：下载图片 + 复制文案': 'Instagram has no web posting: downloads the media and copies the caption',
+  '例如：我们是精品咖啡店「山野咖啡」，要温暖又专业的蓝白配色工牌': 'e.g. We are a specialty coffee shop called "Wild Coffee" — warm yet professional, blue and white',
+  '日历格子': 'Calendar grid', '上传图片（吉祥物/产品）': 'Upload image (mascot / product)', '留空': 'None',
+  '帮我做一套公司工牌：品牌叫「你的品牌」，Logo 在 ./logo.png，蓝白配色，要专业一点；员工名单在 people.csv，顺便出名片和印刷文件': 'Design our company badge: the brand is "Your Brand", logo at ./logo.png, blue and white, professional; the staff list is people.csv — also make business cards and print files',
+  '用 badge-studio 技能，帮我们公司设计一套工牌和名片': 'Use the badge-studio skill to design our company badges and business cards',
+  '先读 .claude/skills/badge-studio/SKILL.md，然后帮我设计公司工牌：品牌叫「你的品牌」，Logo 在 ./logo.png': 'Read .claude/skills/badge-studio/SKILL.md first, then design our company badge: the brand is "Your Brand", logo at ./logo.png',
+  '已复制': 'Copied', '提示词已复制，粘贴给任意 AI 即可': 'Prompt copied — paste it into any AI', '已套用到工牌 ✅': 'Applied ✅', '链接和文案已复制，发给朋友吧': 'Link and caption copied',
+  '正在生成 8 秒演示动画…': 'Rendering the 8-second demo…', '演示动画已下载': '8s demo downloaded'
+};
+let LANG = (() => { try { return localStorage.getItem('lbs.lang') || (/^zh/i.test(navigator.language) ? 'zh' : 'en'); } catch (e) { return 'zh'; } })();
+const tr = s => { if (LANG !== 'en' || !s) return s; if (I18N[s]) return I18N[s]; if (s.includes(' · ')) return s.split(' · ').map(x => I18N[x] || x).join(' · '); return s; };
+const ORIG = new WeakMap();
+function translateDOM(root) {
+  root = root || document.body;
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); let n;
+  while ((n = w.nextNode())) {
+    if (n.parentElement && n.parentElement.closest('script,style,textarea')) continue;
+    if (!ORIG.has(n)) { if (!/[一-鿿]/.test(n.textContent)) continue; ORIG.set(n, n.textContent); }
+    const o = ORIG.get(n), k = o.trim(); n.textContent = LANG === 'en' ? o.replace(k, tr(k)) : o;
+  }
+  root.querySelectorAll('[placeholder],[title]').forEach(e => ['placeholder', 'title'].forEach(a => {
+    const v = e.getAttribute(a); if (!v) return; const key = 'data-zh-' + a;
+    if (!e.hasAttribute(key)) { if (!/[一-鿿]/.test(v)) return; e.setAttribute(key, v); }
+    e.setAttribute(a, LANG === 'en' ? tr(e.getAttribute(key)) : e.getAttribute(key));
+  }));
+  document.documentElement.lang = LANG === 'en' ? 'en' : 'zh-CN';
+  document.querySelectorAll('.langsw button').forEach(b => b.classList.toggle('on', b.dataset.lang === LANG));
+}
+document.querySelectorAll('.langsw button').forEach(b => b.onclick = () => { LANG = b.dataset.lang; try { localStorage.setItem('lbs.lang', LANG); } catch (e) { } reelCache = null; translateDOM(); });
+
+// ---------------------------------------------------------------- 8-second showreel (drop → drag → flip → zoom), recorded in the browser
+let reelCache = null;
+async function makeShowreel() {
+  const key = JSON.stringify(cfg).length + ':' + JSON.stringify(cfg.theme) + cfg.name + LANG;
+  if (reelCache && reelCache.key === key) return reelCache;
+  const cv = document.createElement('canvas'); cv.width = E.W; cv.height = E.H; const x = cv.getContext('2d');
+  x.drawImage(E.showreel(0, 1, LANG), 0, 0);
+  const types = ['video/mp4;codecs=avc1.42E01E', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'];
+  const mime = types.find(t => window.MediaRecorder && MediaRecorder.isTypeSupported(t));
+  if (!mime) throw new Error('browser cannot record video');
+  const rec = new MediaRecorder(cv.captureStream(30), { mimeType: mime, videoBitsPerSecond: 6e6 }), chunks = [];
+  rec.ondataavailable = e => e.data.size && chunks.push(e.data);
+  const done = new Promise(r => rec.onstop = r);
+  rec.start(); const t0 = performance.now(), D = E.SHOWREEL * 1000;
+  await new Promise(res => { const tick = () => { const t = performance.now() - t0; x.drawImage(E.showreel(Math.min(t, D) / 1000, 1, LANG), 0, 0);
+    toast(tr('正在生成 8 秒演示动画…') + ` ${Math.min(8, Math.floor(t / 1000) + 1)}/8`); if (t < D + 120) requestAnimationFrame(tick); else res(); }; tick(); });
+  rec.stop(); await done;
+  const ext = mime.includes('mp4') ? 'mp4' : 'webm', blob = new Blob(chunks, { type: mime.split(';')[0] });
+  reelCache = { key, blob, name: `${(cfg.name || 'badge').replace(/\s+/g, '')}_工牌演示_8s.${ext}`, mime: mime.split(';')[0] };
+  return reelCache;
+}
+async function downloadReel() { const r = await makeShowreel(); download(r.blob, r.name); toast(tr('演示动画已下载')); return r; }
+
 // ---------------------------------------------------------------- sharing (X / Instagram / Facebook / LinkedIn / 微博 / 系统分享)
 const ONLINE_URL = 'https://raw.githack.com/tgchtggn29-bit/lanyard-badge-studio/main/studio/index.html';
 const SHARE_URL = () => (/^https?:$/.test(location.protocol) && !/^(localhost|127\.|0\.0\.0\.0|\[::1\])/.test(location.hostname)) ? location.href.split('#')[0] : ONLINE_URL;
-const shareText = () => `我用 Lanyard Badge Studio 给「${cfg.name}」做了一张专属工牌 ✨ 上传 Logo、聊两句就能生成工牌、名片和海报，你也来试试 👉`;
-function toast(t) { const el = $('toast'); el.textContent = t; el.classList.add('show'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 3200); }
+const shareText = () => LANG === 'en' ? `I designed a custom lanyard badge for ${cfg.name} with Lanyard Badge Studio ✨ Drag it, flip it, print it — try yours 👉` : `我用 Lanyard Badge Studio 给「${cfg.name}」做了一张专属工牌 ✨ 能拖、能翻面、还能直接印刷，你也来试试 👉`;
+function toast(t) { const el = $('toast'); el.textContent = tr(t); el.classList.add('show'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 3200); }
 const enc = encodeURIComponent;
 async function copyText(t) { try { await navigator.clipboard.writeText(t); return true; } catch (e) { return false; } }
 function shareBar(getCanvas, name) {
   const d = document.createElement('div'); d.className = 'share';
-  const add = (label, fn, title) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = label; if (title) b.title = title; b.onclick = e => { e.stopPropagation(); fn(); }; grid.appendChild(b); };
-  const dl = () => dlCanvas(getCanvas(), name);
   d.innerHTML = '<span>分享给朋友</span><div class="sg"></div>';
   const grid = d.querySelector('.sg');
-  if (navigator.canShare && navigator.share) add('📤 分享图片', async () => {
-    const cv = getCanvas(); const blob = await new Promise(r => cv.toBlob(r, 'image/png')); const file = new File([blob], name, { type: 'image/png' });
-    const data = { files: [file], text: shareText() + ' ' + SHARE_URL(), title: 'Lanyard Badge Studio' };
-    try { if (navigator.canShare(data)) await navigator.share(data); else await navigator.share({ text: data.text, url: SHARE_URL() }); } catch (e) { }
+  const add = (label, fn, title) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = label; if (title) b.title = title;
+    b.onclick = async e => { e.stopPropagation(); if (b.disabled) return; b.disabled = true; try { await fn(); } catch (er) { toast(er.message); } finally { b.disabled = false; } }; grid.appendChild(b); };
+  const caption = () => shareText() + ' ' + SHARE_URL();
+  // every share first produces the 8-second demo of the 3D studio (drop → drag → flip → zoom) so friends see it move
+  if (navigator.canShare && navigator.share) add('📤 分享', async () => {
+    const r = await makeShowreel(), file = new File([r.blob], r.name, { type: r.mime });
+    const data = { files: [file], text: caption(), title: 'Lanyard Badge Studio' };
+    try { if (navigator.canShare(data)) await navigator.share(data); else { download(r.blob, r.name); await navigator.share({ text: caption(), url: SHARE_URL() }); } } catch (e) { }
   }, '手机上可以直接分享到微信、Instagram 等');
-  add('X', () => { dl(); window.open(`https://twitter.com/intent/tweet?text=${enc(shareText())}&url=${enc(SHARE_URL())}&hashtags=${enc('AI,工牌,BadgeStudio')}`, '_blank'); toast('图片已下载，发推时点图片按钮加上它'); }, '下载图片并打开 X 发推');
-  add('Instagram', async () => { dl(); const ok = await copyText(shareText() + ' ' + SHARE_URL()); window.open('https://www.instagram.com/', '_blank'); toast(ok ? '图片已下载、文案已复制，在 Instagram 新建帖子即可' : '图片已下载，在 Instagram 新建帖子即可'); }, 'Instagram 不支持网页直接发帖：下载图片 + 复制文案');
-  add('Facebook', () => window.open(`https://www.facebook.com/sharer/sharer.php?u=${enc(SHARE_URL())}&quote=${enc(shareText())}`, '_blank'));
-  add('LinkedIn', () => window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${enc(SHARE_URL())}`, '_blank'));
-  add('微博', () => { dl(); window.open(`https://service.weibo.com/share/share.php?url=${enc(SHARE_URL())}&title=${enc(shareText())}`, '_blank'); toast('图片已下载，可在微博里一起发'); });
-  add('复制链接', async () => toast(await copyText(shareText() + ' ' + SHARE_URL()) ? '链接和文案已复制，发给朋友吧' : SHARE_URL()));
+  add('🎬 8秒动画', downloadReel, '生成并下载 8 秒工牌演示动画');
+  add('X', async () => { await downloadReel(); window.open(`https://twitter.com/intent/tweet?text=${enc(shareText())}&url=${enc(SHARE_URL())}&hashtags=${enc('AI,工牌,BadgeStudio')}`, '_blank'); }, '下载图片并打开 X 发推');
+  add('Instagram', async () => { await downloadReel(); await copyText(caption()); window.open('https://www.instagram.com/', '_blank'); }, 'Instagram 不支持网页直接发帖：下载图片 + 复制文案');
+  add('Facebook', async () => { await downloadReel(); window.open(`https://www.facebook.com/sharer/sharer.php?u=${enc(SHARE_URL())}&quote=${enc(shareText())}`, '_blank'); });
+  add('LinkedIn', async () => { await downloadReel(); window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${enc(SHARE_URL())}`, '_blank'); });
+  add('微博', async () => { await downloadReel(); window.open(`https://service.weibo.com/share/share.php?url=${enc(SHARE_URL())}&title=${enc(shareText())}`, '_blank'); });
+  add('复制链接', async () => toast(await copyText(caption()) ? tr('链接和文案已复制，发给朋友吧') : SHARE_URL()));
   grid.style.gridTemplateColumns = `repeat(${Math.ceil(grid.children.length / 2)}, 1fr)`;   // always two rows
   return d;
 }
@@ -538,7 +638,7 @@ function renderNameCards() {
     });
     d.appendChild(btns);
     d.appendChild(shareBar(() => E.printNameCard('front', key, { dpi: 300 }), `名片_${label}.png`));
-    d.onclick = () => { set(cfg, 'namecard.style', key); $('n_style').value = key; renderNameCards(); toast(`已选用名片样式「${label}」`); };
+    d.onclick = () => { set(cfg, 'namecard.style', key); $('n_style').value = key; renderNameCards(); translateDOM(); toast(`已选用名片样式「${label}」`); };
     g.appendChild(d);
   });
   const tip = document.createElement('div'); tip.className = 'card'; tip.style.maxWidth = '300px';

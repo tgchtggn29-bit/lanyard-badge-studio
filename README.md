@@ -1,3 +1,5 @@
+<p align="center"><b>🗓️ 湾区AI日历 出品</b> · Made by <b>湾区AI日历 (GBA AI Calendar)</b></p>
+
 <p align="center"><b>👉 <a href="https://raw.githack.com/tgchtggn29-bit/lanyard-badge-studio/main/studio/index.html">立即打开工作台体验 · Open the Studio</a> 👈</b><br>
 <sub>在线拖拽、旋转、翻面你的 3D 工牌，免安装；装上技能让你的 AI 智能体帮你设计 · Drag, spin & flip a 3D badge in your browser — no install</sub></p>
 
@@ -9,19 +11,24 @@
 
 让客户、合作伙伴、服务商和供应商一见面就留下好印象。**赶紧来体验吧！**
 
+> 🎁 **免费送你一份工牌展示视频**：做完工牌后，点任意「分享」按钮或「🎬 8秒动画」，就能**免费**拿到一段属于你们公司的 8 秒工牌展示视频（掉落 → 拖拽晃动 → 翻面 → 放大看细节），直接发朋友圈、小红书、X、Instagram。用命令行还能得到 1080P / 4K 高清版。
+
 **To founders, solo-company (OPC) owners and business leaders:**
 
 At trade shows, industry events, meetups — or simply around the office — a well-designed badge is often the first thing people remember about your company. No design agency, no waiting: open the Studio, upload your logo and brand materials, describe what you want in a quick chat, and get a **badge that is uniquely yours** — an animated lanyard-badge video, posters and banners for social media, matching business cards, and print-ready files you can hand straight to a print shop.
 
 Make a great first impression on customers, partners, service providers and suppliers. **Come and try it!**
 
+> 🎁 **A free showcase video of your badge**: once your badge is ready, hit any Share button or "🎬 8s video" to get a **free** 8-second showcase video of your own badge (drop → drag & swing → flip → zoom in) — ready for WeChat Moments, Xiaohongshu, X or Instagram. The CLI also renders 1080p / 4K versions.
+
 <p align="center">
+  <img src="docs/images/showreel.gif" width="250" alt="免费工牌展示视频 free 8s showcase video">
+  &nbsp;
   <img src="docs/images/demo.gif" width="250" alt="工牌掉落动画 animated badge">
   &nbsp;
   <img src="docs/images/preview.png" width="250" alt="停稳预览图 preview">
-  &nbsp;
-  <img src="docs/images/poster.png" width="250" alt="3:4 海报 poster">
 </p>
+<p align="center"><sub>左：免费送的 8 秒工牌展示视频 · 右：品牌工牌动画 &nbsp;|&nbsp; Left: free 8s showcase video · Right: animated brand badge</sub></p>
 
 <p align="center"><img src="docs/images/studio.png" width="880" alt="网页工作台：3D 工牌 + AI 智能体接入教程"></p>
 <p align="center"><sub>网页工作台：中间是可拖拽 / 旋转 / 翻面的 3D 工牌，右下角是接入 AI 智能体的教程 —— 装上 badge-studio 技能，一句话出整套设计 · Studio: interactive 3D badge + AI agent setup guide</sub></p>
@@ -38,6 +45,7 @@ Make a great first impression on customers, partners, service providers and supp
 | 品牌名、品牌色、Logo、几句标语 | **工牌动画**：空白页开场 → 标签上下浮现 → 品牌大字弹出 → 工牌带动态模糊掉落、被挂绳拉住回弹、左右晃两下 → 停稳轻晃 → 品牌字放大缩回 → 收起循环 |
 | | **MP4**：1080P / 4K，单次 & 循环 3 次；**首帧即封面**（存到 iPhone 相册缩略图就是工牌，不是空白页） |
 | | **GIF**：高清版 + 自动压到 **10MB 以内**（公众号上限） |
+| | **🎁 免费工牌展示视频**：8 秒，演示掉落、拖拽、翻面、放大，分享时自动生成；命令行另出 `showreel_8s_1080p.mp4` |
 | | **图片**：停稳清晰预览图（正 / 背面）、透明底工牌、3:4 海报、紧凑横幅 |
 | 员工名单 `people.csv`（可选） | **印刷包**：工牌正面 / 背面（54×85.6 mm，3 mm 出血，600 dpi）、带裁切线 PDF、出血版 PDF、**每人一张的批量背面**、挂绳 20×900 mm、**设计规范 PDF**（色值 HEX / RGB / CMYK 参考、字体授权、工艺建议） |
 | 浏览器 | **3D 工牌**：拖着甩、右键 / Shift 拖动旋转、双击翻面、滚轮放大、「看细节」查看高清卡面 |
@@ -163,6 +171,24 @@ out/湾区AI日历/
 - `scripts/`：Playwright 逐帧渲染 → ffmpeg 编码；Chromium 按毫米尺寸输出 PDF。
 - 字体：思源黑体（Noto Sans CJK SC）+ Inter，均为 SIL OFL 可商用。
 
+## 一起设计更多工牌样式 · Contribute badge styles
+
+**欢迎大家来设计工牌样式！** 新的卡面版式、配色方案、名片样式、挂绳图案、动效……都可以提交，我会持续更新、合并进来，让更多公司用上。
+
+- 直接提 [Pull Request](https://github.com/tgchtggn29-bit/lanyard-badge-studio/pulls)：卡面在 `src/engine.js` 的 `cardFront` / `cardBack`，名片样式在 `NAMECARD_STYLES`，示例配置放 `examples/<你的品牌>/brand.json`
+- 不会写代码也没关系：在 [Issues](https://github.com/tgchtggn29-bit/lanyard-badge-studio/issues) 里贴上你的设计稿或 `brand.json`，或者加我微信发给我
+- 优秀样式会署名收录进工作台，供所有人选择
+
+**Designers welcome!** New card layouts, colour themes, business-card styles, lanyard patterns and motion ideas are all appreciated — open a PR or an issue (a mock-up or a `brand.json` is enough). I'll keep merging and updating, with credit.
+
 ## License
 
 MIT · 由 [@湾区AI日历](https://github.com/tgchtggn29-bit) 出品。欢迎 PR：新卡面模板、新动效、更多印刷规格。
+
+## 联系开发者 · Contact
+
+有问题、想合作、想定制工牌，或者想投稿样式，欢迎加我微信 **ke10157**（备注「工牌」）。
+
+Questions, collaboration, custom badges or style submissions — add me on WeChat: **ke10157**.
+
+<p align="center"><img src="docs/images/wechat-qr.jpg" width="220" alt="开发者微信二维码 WeChat QR: ke10157"></p>

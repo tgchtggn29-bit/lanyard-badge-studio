@@ -86,6 +86,17 @@ if (!args['no-video']) {
       }
     }
   }
+  // 8-second studio showreel (drop → drag → flip → zoom) for sharing
+  console.log('• showreel 8s');
+  const rdir = path.join(tmp, 'reel'); fs.mkdirSync(rdir, { recursive: true });
+  const D = await page.evaluate(() => BadgeEngine.SHOWREEL), lang = args.lang === 'en' ? 'en' : 'zh';
+  for (let i = 0; i < D * fps; i++) {
+    const data = await page.evaluate(([t, l]) => BadgeEngine.showreel(t, 1.5, l).toDataURL('image/jpeg', 0.95), [i / fps, lang]);
+    fs.writeFileSync(path.join(rdir, `f_${String(i).padStart(4, '0')}.jpg`), Buffer.from(data.split(',')[1], 'base64'));
+  }
+  const rseq = ['-framerate', String(fps), '-i', path.join(rdir, 'f_%04d.jpg')];
+  ff([...rseq, ...x264(16), vid('showreel_8s_1080p.mp4')]);
+  ff([...rseq, '-vf', 'fps=15,scale=480:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=128:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle', '-loop', '0', gif('showreel_8s.gif')]);
   if (!args['keep-frames']) fs.rmSync(tmp, { recursive: true, force: true }); else console.log('  frames kept in', tmp);
 }
 await browser.close();
