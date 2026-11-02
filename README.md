@@ -1,11 +1,11 @@
 <p align="center"><b>👉 <a href="https://raw.githack.com/tgchtggn29-bit/lanyard-badge-studio/main/studio/index.html">立即打开工作台体验 · Open the Studio</a> 👈</b><br>
-<sub>在线拖拽、旋转、翻面你的 3D 工牌，对话调整，免安装 · Drag, spin & flip a 3D badge in your browser — no install</sub></p>
+<sub>在线拖拽、旋转、翻面你的 3D 工牌，免安装；装上技能让你的 AI 智能体帮你设计 · Drag, spin & flip a 3D badge in your browser — no install</sub></p>
 
 # Lanyard Badge Studio · 工牌工作室
 
 **致各位创始人、一人公司（OPC）主理人和企业老板：**
 
-参加展会、行业活动、社交聚会，或者每天在办公室里，一张有设计感的工牌，往往是别人记住你们公司的第一眼。现在不用找设计公司、不用等排期 —— 打开工作台，上传你们的 Logo 和品牌资料，用对话说出你想要的样子，就能生成**你们公司独一无二的工牌**：会掉落晃动的动态工牌视频、社交平台用的海报和横幅、配套的名片，以及可以直接交给印刷厂的印刷文件。
+参加展会、行业活动、社交聚会，或者每天在办公室里，一张有设计感的工牌，往往是别人记住你们公司的第一眼。现在不用找设计公司、不用等排期 —— 打开工作台，上传你们的 Logo 和品牌资料，交给你的 AI 智能体（Claude Code、Claude、Codex、Cursor……）说一句你想要的样子，就能生成**你们公司独一无二的工牌**：会掉落晃动的动态工牌视频、社交平台用的海报和横幅、配套的名片，以及可以直接交给印刷厂的印刷文件。
 
 让客户、合作伙伴、服务商和供应商一见面就留下好印象。**赶紧来体验吧！**
 
@@ -23,8 +23,8 @@ Make a great first impression on customers, partners, service providers and supp
   <img src="docs/images/poster.png" width="250" alt="3:4 海报 poster">
 </p>
 
-<p align="center"><img src="docs/images/studio.png" width="880" alt="网页工作台：3D 工牌 + 对话助手"></p>
-<p align="center"><sub>网页工作台：中间是可拖拽 / 旋转 / 翻面的 3D 工牌，右下角是对话助手 —— 上传品牌资料、用一句话调整 · Studio: interactive 3D badge + chat assistant</sub></p>
+<p align="center"><img src="docs/images/studio.png" width="880" alt="网页工作台：3D 工牌 + AI 智能体接入教程"></p>
+<p align="center"><sub>网页工作台：中间是可拖拽 / 旋转 / 翻面的 3D 工牌，右下角是接入 AI 智能体的教程 —— 装上 badge-studio 技能，一句话出整套设计 · Studio: interactive 3D badge + AI agent setup guide</sub></p>
 
 <p align="center"><img src="docs/images/namecards.png" width="880" alt="三种名片样式 business card styles"></p>
 <p align="center"><sub>配套名片：暗夜网格 / 品牌色底 / 极简白，三种样式任选 · Matching business cards in 3 styles</sub></p>
@@ -41,7 +41,7 @@ Make a great first impression on customers, partners, service providers and supp
 | | **图片**：停稳清晰预览图（正 / 背面）、透明底工牌、3:4 海报、紧凑横幅 |
 | 员工名单 `people.csv`（可选） | **印刷包**：工牌正面 / 背面（54×85.6 mm，3 mm 出血，600 dpi）、带裁切线 PDF、出血版 PDF、**每人一张的批量背面**、挂绳 20×900 mm、**设计规范 PDF**（色值 HEX / RGB / CMYK 参考、字体授权、工艺建议） |
 | 浏览器 | **3D 工牌**：拖着甩、右键 / Shift 拖动旋转、双击翻面、滚轮放大、「看细节」查看高清卡面 |
-| Logo / 品牌图 + 一句话 | **对话助手**：上传图片自动提取品牌色并放上 Logo；说「品牌叫 XX，主色 #FF5A3C，名字 张三 职位 设计师」即时生效；复杂需求一键「复制给 AI」再粘贴回 JSON |
+| Logo / 品牌资料 + 一句话 | **AI 智能体技能**：在 Claude Code / Claude 应用 / Codex / Cursor 里装上 `badge-studio` 技能，说「帮我做一套蓝白配色的公司工牌」，它会提取品牌色、写文案、渲染、自查，交付成片和印刷包 |
 | 电话 / 微信 / 邮箱 / 地址 | **名片**：90×54 mm，三种样式（暗夜网格 / 品牌色底 / 极简白），带裁切线 PDF，按名单每人一张 |
 
 内置的平台避坑：
@@ -64,35 +64,11 @@ npm run studio        # 自动打开 http://localhost:5173/studio/ （无需 npm
 
 > Windows 若提示「禁止运行脚本」，用 `npm.cmd run studio`，或直接 `node scripts/serve.mjs`。没装 Git 可以在 GitHub 页面点 Code → Download ZIP。
 
-左边填品牌资料（名称、颜色、Logo、标语、标签、背面姓名职位、名片联系方式），或者直接在右下角**对话助手**里上传 Logo、用一句话说要改什么。中间实时看：
+左边填品牌资料（名称、颜色、Logo、标语、标签、背面姓名职位、名片联系方式）。右下角是**接入 AI 智能体的教程**（见下文第 3 种用法）。中间实时看：
 - **3D 工牌**：拖拽、旋转、翻面、放大看细节
 - **动画预览**：可直接录一段 WebM
 - **海报 & 横幅**、**名片**（三选一）、**印刷稿**：一键下载 PNG
 - 改好后点「导出 brand.json」，交给命令行出成片
-
-#### 对话助手 · AI 设计师
-
-右下角的对话助手有三种工作方式：
-
-| 模式 | 怎么开启 | 适合 |
-|---|---|---|
-| **本地规则** | 默认 | 不联网也能用：听得懂「蓝白配色的 XX 工牌」「我们是咖啡店」「名字 张三 职位 设计师」这类说法，自动配色、写文案和标签 |
-| **自带 Key** | 点 ⚙ 接入 AI，选 DeepSeek / 通义千问 / Kimi / 智谱 / 硅基流动 / OpenAI / Claude / OpenRouter / 自定义，填你自己的 API Key | 个人使用。Key 只存在你的浏览器里；用 `npm run studio` 打开时经本地服务器转发，避开浏览器跨域限制 |
-| **站长体验额度** | 部署时在服务器上设置 `LLM_API_KEY`（见下） | 你把工作台放到自己服务器上，让访客免 Key 体验 AI 设计 |
-
-**防滥用限制**（体验额度模式下由服务器强制执行，Key 永远不会发到浏览器）：
-
-```bash
-LLM_API_KEY=sk-xxx LLM_PROVIDER=deepseek \
-LLM_PER_IP_DAY=20 LLM_DAILY_CAP=500 LLM_COOLDOWN_SEC=4 \
-node scripts/serve.mjs --host 0.0.0.0 --port 5173 --no-open
-```
-
-- 每个访客 IP 每天 `LLM_PER_IP_DAY` 次（默认 20），全站每天 `LLM_DAILY_CAP` 次（默认 500），两次请求至少间隔 `LLM_COOLDOWN_SEC` 秒（默认 4）
-- 每次输入最多 300 字（网页）/ 400 字（服务器），单次回复最多 1500 tokens
-- AI 只处理工牌、名片、海报相关的设计请求，无关请求（写代码、闲聊等）会被礼貌拒绝
-- 转发接口只放行已知的大模型服务商域名，不能被当成通用代理
-- 在 Nginx / CDN 后面部署时加 `TRUST_PROXY=1`，按真实访客 IP 计数
 
 #### 分享
 
@@ -124,13 +100,23 @@ out/湾区AI日历/
 
 常用参数：`--res 1080|4k|both`、`--fps 30`、`--gif-limit 10`、`--strict-url`（发现网址直接报错）、`--card 54x85.6`、`--bleed 3`、`--dpi 600`、`--lanyard 20x900`、`--namecard-style grid|neon|minimal`。
 
-### 3. 让 AI 助手通过对话帮你做
+### 3. 让你的 AI 智能体帮你设计（推荐）
 
-仓库自带技能说明 [`.claude/skills/badge-studio/SKILL.md`](.claude/skills/badge-studio/SKILL.md)（Claude Code 打开本仓库会自动识别；其他 Agent 见 [`AGENTS.md`](AGENTS.md)）。对它说：
+项目自带技能 **badge-studio**：智能体会读官网和 Logo、提取品牌色、问你几个问题（标语、标签、要发哪些平台、要不要印刷）、写好 `brand.json`、渲染、自己先检查一遍，再把预览图给你审，最后交付成片和印刷包。
 
-> 帮我做一套公司工牌，这是我们的官网和 Logo，员工名单在 people.csv
+| 智能体 | 怎么装 |
+|---|---|
+| **Claude Code** | `git clone` 本项目 → 在目录里运行 `claude`，技能自动加载。想全局可用：`cp -r .claude/skills/badge-studio ~/.claude/skills/`（Windows：`xcopy /E /I .claude\skills\badge-studio %USERPROFILE%\.claude\skills\badge-studio`） |
+| **Claude 应用**（网页 / 桌面 / 手机） | 下载 [`dist/badge-studio.zip`](dist/badge-studio.zip)，在 Claude 设置的「技能（Skills）」里上传；技能包里带了渲染引擎和脚本 |
+| **Codex / Cursor / Windsurf / Trae / 通义灵码…** | 打开本项目文件夹，智能体会读 [`AGENTS.md`](AGENTS.md)；或对它说「先读 `.claude/skills/badge-studio/SKILL.md` 再帮我设计工牌」 |
+| **支持 Skills 目录的其他智能体** | 把 `.claude/skills/badge-studio` 复制到它的 skills 目录 |
+| **只有普通 AI 聊天**（ChatGPT / 豆包 / DeepSeek / Kimi） | 工作台右下角「复制提示词」→ 发给 AI → 把它返回的 JSON 粘贴回「套用到工牌」 |
 
-它会：读官网 / Logo 提取品牌色 → 问你几个问题（标语、标签、要发哪些平台、要不要印刷）→ 写好 `brand.json` → 渲染 → 把预览图给你审 → 按你的意见改 → 交付成片和印刷包。
+然后对它说：
+
+> 帮我做一套公司工牌：品牌叫「你的品牌」，Logo 在 ./logo.png，蓝白配色，要专业一点；员工名单在 people.csv，顺便出名片和印刷文件
+
+网页工作台右下角也有同样的分步教程，命令可以一键复制。
 
 ## brand.json
 

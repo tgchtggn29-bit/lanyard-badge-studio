@@ -5,6 +5,8 @@ description: Make a branded animated lanyard badge (工牌) from a short convers
 
 # Badge Studio — conversational workflow
 
+> **Where the code is.** Inside the repo, run commands from the repo root. If this skill was installed from `badge-studio.zip` (Claude app / global skills folder), the engine and scripts are bundled next to this file (`src/`, `scripts/`, `examples/`, `package.json`): `cd` into the skill folder first. Rendering needs Node 18+, `npm install` (Playwright Chromium) and ffmpeg for video/GIF. If the environment can't run them, still produce `brand.json` and tell the user to open the Studio (`npm run studio` or the online link in the README) → 导入配置 to preview and download.
+
 You turn a user's brand materials into a `brand.json`, render everything with this repo's scripts, review the results with the user, and deliver. Talk to the user in their language (Chinese by default for this project).
 
 ## 1. Collect materials (ask once, in one message)
@@ -67,4 +69,4 @@ Send the user the preview images first for approval (fast), then the video/GIF, 
 
 - Social: `video/badge_1080p_cover_x3.mp4` (小红书 / 视频号), `gif/badge_under_10MB.gif` (公众号), `images/preview_1080x1920.png` (cover).
 - Print: the whole `print/` folder — tell the user to forward it to the print shop as is; point out `06_设计规范.pdf` and that fluorescent colours need a spot-colour ink + proof (打样).
-- Interactive: `npm run studio` (or the online link in the README) lets them drag / spin / flip the 3D badge, chat to tweak, pick a business-card style and export PNGs.
+- Interactive: `npm run studio` (or the online link in the README) lets them drag / spin / flip the 3D badge, pick a business-card style, import your brand.json and export PNGs.
