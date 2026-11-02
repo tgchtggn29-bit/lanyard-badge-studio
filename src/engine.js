@@ -49,6 +49,8 @@
       id: 'NO. 0001',
       note: '凭此卡出入活动现场 · 请妥善保管'
     },
+    contact: { phone: '138 0000 0000', email: 'hello@example.com', wechat: 'your-wechat', address: '广东 · 深圳' },
+    namecard: { style: 'grid', slogan: '' },
     pulse: '湾区 AI 日历',
     credit: 'Created by 湾区AI日历 · Greater Bay Area AI Events Calendar',
     poster: {
@@ -501,6 +503,68 @@
     return cv;
   }
 
+  // ---------------------------------------------------------------- business cards (名片), 90 × 54 mm, 3 styles
+  const NAMECARD_STYLES = {
+    grid:    { label: '暗夜网格', palette: th => ({ bg: th.bg, fg: '#FFFFFF', sub: th.dim, mute: th.mute, acc: th.accent, onAcc: th.bg, line: 'rgba(255,255,255,.14)', grid: 'rgba(255,255,255,.05)', mark: A(th.accent, .30), glow: true }) },
+    neon:    { label: '品牌色底', palette: th => ({ bg: th.accent, fg: th.bg, sub: A(th.bg, .75), mute: A(th.bg, .6), acc: th.bg, onAcc: th.accent, line: A(th.bg, .25), grid: A(th.bg, .06), mark: A(th.bg, .14), glow: false }) },
+    minimal: { label: '极简白', palette: th => ({ bg: '#FFFFFF', fg: '#111111', sub: '#555555', mute: '#8A8A8A', acc: th.accent, onAcc: th.bg, line: 'rgba(0,0,0,.12)', grid: 'rgba(0,0,0,.035)', mark: 'rgba(0,0,0,.06)', glow: false, ink: th.bg }) }
+  };
+  function nameCard(c, x, y, w, h, side, style, person, opt) {
+    opt = opt || {}; const st = NAMECARD_STYLES[style] || NAMECARD_STYLES.grid, P = st.palette(T()), b = opt.bleed || 0, k = w / 540;
+    person = Object.assign({}, C.back, person || {}); const ct = Object.assign({}, C.contact, person.contact || {});
+    ['phone', 'email', 'wechat', 'address'].forEach(f => { if (person[f]) ct[f] = person[f]; });
+    c.save();
+    if (opt.print) { c.beginPath(); c.rect(x - b, y - b, w + 2 * b, h + 2 * b); c.clip(); } else { rr(c, x, y, w, h, 14 * k); c.clip(); }
+    c.fillStyle = P.bg; c.fillRect(x - b, y - b, w + 2 * b, h + 2 * b);
+    if (P.glow) { const g = c.createRadialGradient(x + w, y, 0, x + w, y, 420 * k); g.addColorStop(0, A(T().accent, .22)); g.addColorStop(1, A(T().accent, 0)); c.fillStyle = g; c.fillRect(x - b, y - b, w + 2 * b, h + 2 * b); }
+    c.strokeStyle = P.grid; c.lineWidth = 1 * k;
+    for (let gx = x - b; gx < x + w + b; gx += 18 * k) { c.beginPath(); c.moveTo(gx, y - b); c.lineTo(gx, y + h + b); c.stroke(); }
+    for (let gy = y - b; gy < y + h + b; gy += 18 * k) { c.beginPath(); c.moveTo(x - b, gy); c.lineTo(x + w + b, gy); c.stroke(); }
+    const brand = C.card.brand || C.name, accInk = style === 'minimal' ? P.ink : P.acc;
+    c.textBaseline = 'alphabetic'; c.textAlign = 'left';
+    if (side === 'front') {
+      // watermark word
+      c.save(); let ws = 210 * k; c.font = `900 ${ws}px ${MIX()}`; const ww = c.measureText(C.giantWord).width; if (ww > w * 0.9) { ws *= w * 0.9 / ww; c.font = `900 ${ws}px ${MIX()}`; }
+      c.textAlign = 'right'; if (style === 'grid') { c.lineWidth = 1.4 * k; c.strokeStyle = P.mark; c.strokeText(C.giantWord, x + w - 24 * k, y + h - 28 * k); } else { c.fillStyle = P.mark; c.fillText(C.giantWord, x + w - 24 * k, y + h - 28 * k); } c.restore();
+      // brand row
+      let bx = x + 40 * k;
+      if (IMG.logo) { const lh = 40 * k, lw = lh * IMG.logo.width / IMG.logo.height; c.drawImage(IMG.logo, bx, y + 52 * k, lw, lh); bx += lw + 14 * k; }
+      else { c.fillStyle = style === 'minimal' ? P.acc : P.acc; c.beginPath(); c.arc(bx + 8 * k, y + 72 * k, 8 * k, 0, 7); c.fill(); if (style === 'minimal') { c.lineWidth = 1.5 * k; c.strokeStyle = P.ink; c.stroke(); } if (P.glow) { c.shadowColor = P.acc; c.shadowBlur = 14 * k; c.fill(); c.shadowBlur = 0; } bx += 28 * k; }
+      let fs = 36 * k; c.font = `900 ${fs}px ${CJK()}`; const tw = c.measureText(brand).width; if (tw > w * 0.62) { fs *= w * 0.62 / tw; c.font = `900 ${fs}px ${CJK()}`; }
+      c.fillStyle = P.fg; c.fillText(brand, bx, y + 85 * k);
+      c.fillStyle = accInk; c.fillRect(x + 40 * k, y + 116 * k, 26 * k, 3 * k);
+      c.font = `700 ${13 * k}px ${MIX()}`; c.fillStyle = style === 'minimal' ? P.sub : (style === 'neon' ? P.fg : P.acc); c.fillText(C.card.kicker || '', x + 76 * k, y + 121 * k);
+      const slogan = (C.namecard && C.namecard.slogan) || (C.poster.sub || [])[0] || '';
+      c.fillStyle = P.fg; c.font = `700 ${22 * k}px ${CJK()}`; c.fillText(slogan, x + 40 * k, y + 238 * k);
+      c.fillStyle = P.mute; c.font = `500 ${15 * k}px ${CJK()}`; c.fillText((C.poster.sub || [])[1] || '', x + 40 * k, y + 268 * k);
+      if (style === 'minimal') { c.fillStyle = P.acc; c.fillRect(x - b, y + h - 10 * k, w + 2 * b, 10 * k + b); }
+    } else {
+      // holder
+      let ns = 40 * k; c.font = `900 ${ns}px ${CJK()}`; const nw = c.measureText(person.name).width; if (nw > w * 0.6) { ns *= w * 0.6 / nw; c.font = `900 ${ns}px ${CJK()}`; }
+      c.fillStyle = P.fg; c.fillText(person.name, x + 40 * k, y + 96 * k);
+      c.fillStyle = P.sub; c.font = `600 ${17 * k}px ${CJK()}`; c.fillText(person.title || '', x + 40 * k, y + 128 * k);
+      c.textAlign = 'right'; c.fillStyle = P.mute; c.font = `700 ${12 * k}px ${MIX()}`; c.fillText(person.id || '', x + w - 40 * k, y + 64 * k); c.textAlign = 'left';
+      c.strokeStyle = P.line; c.lineWidth = 1.2 * k; c.beginPath(); c.moveTo(x + 40 * k, y + 154 * k); c.lineTo(x + w - 40 * k, y + 154 * k); c.stroke();
+      const rows = [['TEL', ct.phone], ['MAIL', ct.email], ['WECHAT', ct.wechat], ['ADDR', ct.address]].filter(r => r[1]);
+      rows.forEach(([lab, val], i) => {
+        const ry = y + 186 * k + i * 27 * k;
+        c.fillStyle = style === 'minimal' ? P.mute : (style === 'neon' ? P.fg : P.acc); c.font = `800 ${11 * k}px ${MIX()}`; c.fillText(lab, x + 40 * k, ry);
+        c.fillStyle = P.fg; c.font = `500 ${15 * k}px ${MIX()}`; c.fillText(val, x + 118 * k, ry);
+      });
+      // brand stamp
+      c.textAlign = 'right'; c.fillStyle = P.fg; c.font = `900 ${16 * k}px ${CJK()}`; c.fillText(brand, x + w - 40 * k, y + h - 34 * k);
+      c.fillStyle = style === 'minimal' ? P.acc : P.acc; const bw = c.measureText(brand).width; c.beginPath(); c.arc(x + w - 40 * k - bw - 14 * k, y + h - 40 * k, 5 * k, 0, 7); c.fill();
+      if (style === 'grid') { c.fillStyle = P.acc; c.fillRect(x - b, y + h - 10 * k, w + 2 * b, 10 * k + b); }
+      if (style === 'minimal') { c.fillStyle = P.acc; c.fillRect(x - b, y - b, 10 * k + b, h + 2 * b); }
+    }
+    c.restore();
+  }
+  function nameCardCanvas(side, style, sc, person) {
+    sc = sc || 1; const cv = mk(560 * sc, 344 * sc), c = cv.getContext('2d'); c.scale(sc, sc);
+    c.save(); c.shadowColor = 'rgba(0,0,0,.35)'; c.shadowBlur = 14; c.shadowOffsetY = 5; rr(c, 10, 10, 540, 324, 14); c.fillStyle = '#000'; c.fill(); c.restore();
+    nameCard(c, 10, 10, 540, 324, side, style, person); return cv;
+  }
+
   // ---------------------------------------------------------------- print faces
   // mm → px at a given dpi
   const mm = (v, dpi) => Math.round(v / 25.4 * dpi);
@@ -511,6 +575,12 @@
     const cv = mk(tw + 2 * b, thh + 2 * b), c = cv.getContext('2d');
     if (side === 'back') cardBack(c, b, b, tw, thh, { print: true, bleed: b }, person);
     else cardFront(c, b, b, tw, thh, { print: true, bleed: b });
+    return cv;
+  }
+  function printNameCard(side, style, o, person) {
+    o = Object.assign({ w: 90, h: 54, bleed: 3, dpi: 600 }, o || {});
+    const tw = mm(o.w, o.dpi), thh = mm(o.h, o.dpi), b = mm(o.bleed, o.dpi);
+    const cv = mk(tw + 2 * b, thh + 2 * b); nameCard(cv.getContext('2d'), b, b, tw, thh, side, style || (C.namecard && C.namecard.style) || 'grid', person, { print: true, bleed: b });
     return cv;
   }
   // lanyard strip: width × length mm, horizontal artwork (as printers expect for heat-transfer straps)
@@ -528,14 +598,14 @@
     const hits = [], re = /\b(?:https?:\/\/|www\.)\S+|\b[a-z0-9-]+\.(?:com|cn|net|org|ltd|io|ai|co|app|dev|xyz|top|vip|me|cc)\b/ig;
     (function walk(v, path) {
       if (typeof v === 'string') { if (!v.startsWith('data:')) { const m = v.match(re); if (m) hits.push({ path, match: m }); } }
-      else if (v && typeof v === 'object') for (const k of Object.keys(v)) { if (k === 'logo' || k === 'image') continue; walk(v[k], path ? path + '.' + k : k); }
+      else if (v && typeof v === 'object') for (const k of Object.keys(v)) { if (k === 'logo' || k === 'image' || k === 'contact') continue; walk(v[k], path ? path + '.' + k : k); }
     })(obj, '');
     return hits;
   }
 
   global.BadgeEngine = {
     W, H, DEFAULT_CONFIG, setConfig, get config() { return C; },
-    frame, still, badgeOnly, holderCanvas, scene, poster, banner, printCard, printLanyard,
+    frame, still, badgeOnly, holderCanvas, scene, nameCardCanvas, printNameCard, NAMECARD_STYLES: Object.fromEntries(Object.entries(NAMECARD_STYLES).map(([k, v]) => [k, v.label])), poster, banner, printCard, printLanyard,
     cardFront, cardBack, holder, pose, drawBadge, background, findUrls, mm
   };
 })(typeof window !== 'undefined' ? window : globalThis);

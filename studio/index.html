@@ -56,6 +56,26 @@ section.view{position:relative;overflow:hidden;display:flex;flex-direction:colum
 .card canvas,.card img{display:block;border-radius:8px;background:#000;max-width:100%}
 #lightbox{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;z-index:50;overflow:auto;cursor:zoom-out}
 #lightbox img{display:block;margin:30px auto;max-width:none;width:min(1100px,96vw)}
+/* ---- chat assistant ---- */
+#chat{position:absolute;right:16px;bottom:16px;width:340px;max-height:calc(100% - 90px);display:flex;flex-direction:column;z-index:20;
+  background:rgba(16,16,16,.94);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:16px;box-shadow:0 18px 50px rgba(0,0,0,.5)}
+#chat .ch{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer}
+#chat .ch b{font-size:13px}#chat .ch span{font-size:11px;color:var(--mute)}#chat .ch i{margin-left:auto;font-style:normal;color:var(--mute)}
+#chat .msgs{overflow:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px;min-height:120px}
+#chat .m{max-width:92%;padding:8px 10px;border-radius:12px;font-size:12.5px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
+#chat .m.bot{background:#1d1d1d;border:1px solid var(--line);align-self:flex-start}
+#chat .m.me{background:var(--acc);color:#0A0A0A;align-self:flex-end;font-weight:600}
+#chat .m img{max-width:100%;max-height:110px;object-fit:contain;border-radius:8px;display:block;margin-top:6px}
+#chat .sw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin:0 3px;border:1px solid rgba(255,255,255,.3)}
+#chat .chips{display:flex;flex-wrap:wrap;gap:6px;padding:0 12px 8px}
+#chat .chips button{padding:4px 10px;font-size:11.5px}
+#chat form{display:flex;gap:6px;padding:10px 12px;border-top:1px solid var(--line);align-items:center}
+#chat form input[type=text]{flex:1;background:#0c0c0c;border:1px solid var(--line);color:var(--text);border-radius:999px;padding:8px 12px;font:13px inherit;font-family:inherit;min-width:0}
+#chat form label{cursor:pointer;font-size:18px;line-height:1;padding:4px}
+#chat.min .msgs,#chat.min .chips,#chat.min form{display:none}
+/* ---- name cards ---- */
+.ncrow{display:flex;gap:14px;flex-wrap:wrap}.ncrow canvas{width:300px;height:auto}
+.card.pick{cursor:pointer}.card.pick.on{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc)}
 @media (max-width:860px){main{grid-template-columns:1fr;height:auto}aside{max-height:none;border-right:0;border-bottom:1px solid var(--line)}section.view{height:80vh}}
 </style>
 </head>
@@ -97,6 +117,12 @@ section.view{position:relative;overflow:hidden;display:flex;flex-direction:colum
   <div class="row"><div><label>姓名</label><input id="b_name" type="text"></div><div><label>编号</label><input id="b_id" type="text"></div></div>
   <label>职位</label><input id="b_title" type="text">
   <label>备注</label><input id="b_note" type="text">
+  <h3>名片</h3>
+  <label>名片样式</label><select id="n_style"><option value="grid">暗夜网格</option><option value="neon">品牌色底</option><option value="minimal">极简白</option></select>
+  <label>名片口号</label><input id="n_slogan" type="text" placeholder="留空则用海报副标题">
+  <div class="row"><div><label>电话</label><input id="n_phone" type="text"></div><div><label>微信</label><input id="n_wechat" type="text"></div></div>
+  <label>邮箱</label><input id="n_email" type="text">
+  <label>地址</label><input id="n_address" type="text">
   <h3>挂绳 & 动画</h3>
   <label>挂绳文字（用 | 分隔）</label><input id="f_strap" type="text">
   <label>浮动标签（每行一个，最多 12 个）</label><textarea id="f_tags" rows="6"></textarea>
@@ -116,6 +142,7 @@ section.view{position:relative;overflow:hidden;display:flex;flex-direction:colum
     <button data-pane="p3d" class="on">3D 工牌（可拖拽）</button>
     <button data-pane="panim">动画预览</button>
     <button data-pane="pposter">海报 & 横幅</button>
+    <button data-pane="pcard">名片</button>
     <button data-pane="pprint">印刷稿</button>
   </div>
 
@@ -149,7 +176,20 @@ section.view{position:relative;overflow:hidden;display:flex;flex-direction:colum
   </div>
 
   <div id="pposter" class="pane"><div class="gallery" id="posterGallery"></div></div>
+  <div id="pcard" class="pane"><div class="gallery" id="cardGallery"></div></div>
   <div id="pprint" class="pane"><div class="gallery" id="printGallery"></div></div>
+
+  <div id="chat">
+    <div class="ch" id="chatHead"><span class="dot" style="width:8px;height:8px;border-radius:50%;background:var(--acc);box-shadow:0 0 10px var(--acc)"></span>
+      <div><b>对话助手 · 做你自己的工牌</b><br><span>上传品牌资料，或直接告诉我要改什么</span></div><i id="chatToggle">—</i></div>
+    <div class="msgs" id="msgs"></div>
+    <div class="chips" id="chips"></div>
+    <form id="chatForm" autocomplete="off">
+      <label title="上传 Logo / 品牌图 / brand.json">📎<input id="chatFile" type="file" accept="image/*,.json" hidden></label>
+      <input id="chatInput" type="text" placeholder="例如：品牌叫 Nova，主色 #FF5A3C">
+      <button class="primary" type="submit">发送</button>
+    </form>
+  </div>
 </section>
 </main>
 <div id="lightbox"><img id="lbImg" alt=""></div>
@@ -169,7 +209,8 @@ const bind = [
   ['f_pulse', 'pulse'], ['h_title', 'header.title'], ['h_sub', 'header.sub'], ['f_credit', 'credit'],
   ['p_handle', 'poster.handle'], ['p_channels', 'poster.channels'],
   ['c_accent', 'theme.accent'], ['c_accent2', 'theme.accent2'], ['c_bg', 'theme.bg'],
-  ['f_hero', 'card.hero.type'], ['f_today', 'card.hero.today', 'num']
+  ['f_hero', 'card.hero.type'], ['f_today', 'card.hero.today', 'num'],
+  ['n_style', 'namecard.style'], ['n_slogan', 'namecard.slogan'], ['n_phone', 'contact.phone'], ['n_wechat', 'contact.wechat'], ['n_email', 'contact.email'], ['n_address', 'contact.address']
 ];
 const lists = [['f_headline', 'card.headline', '\n'], ['f_tags', 'tags', '\n'], ['h_right', 'header.right', '\n'],
   ['p_title', 'poster.title', '\n'], ['p_sub', 'poster.sub', '\n'], ['f_strap', 'strap', '|'], ['f_hot', 'card.hero.highlights', ',', 'num']];
@@ -212,7 +253,7 @@ async function apply() {
   $('urlWarn').textContent = hits.length ? '⚠ 检测到网址：' + hits.map(h => h.match.join(' ')).join('、') + '。小红书等平台可能判定违规，建议改成品牌名或账号。' : '';
   faces.front = E.holderCanvas('front', 2.5); faces.back = E.holderCanvas('back', 2.5);
   $('faceFront').replaceChildren(faces.front); $('faceBack').replaceChildren(faces.back);
-  renderPoster(); renderPrint();
+  renderPoster(); renderPrint(); renderNameCards();
 }
 
 // ---------------------------------------------------------------- 3D badge: verlet lanyard + CSS 3D card
@@ -225,15 +266,18 @@ function layout() {
   const dpr = Math.min(3, (window.devicePixelRatio || 1) * Math.max(1, zoom));
   rope.width = SW * dpr; rope.height = SH * dpr; rope.style.width = SW + 'px'; rope.style.height = SH + 'px'; rc.setTransform(dpr, 0, 0, dpr, 0, 0);
   world.style.width = SW + 'px'; world.style.height = SH + 'px';
-  world.style.transform = `translate(${SW / 2}px,0) scale(${zoom}) translate(${-SW / 2}px,0)`;
+  const cx = (SW - chatSpace()) / 2;
+  world.style.transform = `translate(${cx}px,0) scale(${zoom}) translate(${-cx}px,0)`;
+  document.querySelector('.hint').style.left = cx + 'px';
 }
-function anchor() { return { x: SW / 2, y: -40 }; }
+function chatSpace() { const c = $('chat'); return c && !c.classList.contains('min') && SW > 980 ? 372 : 0; }
+function anchor() { return { x: (SW - chatSpace()) / 2, y: -40 }; }
 function drop() {
   const a = anchor(); pts = [];
   for (let i = 0; i <= N; i++) { const y = a.y + i * SEG - 520 * (i / N); pts.push({ x: a.x + i * 4, y, px: a.x + i * 4, py: y }); }
-  ang = 0.3; av = 0; yv = 0.06;
+  ang = 0.25; av = 0; yv = 20; accT = 0;
 }
-function toWorld(e) { const r = stage.getBoundingClientRect(); return { x: (e.clientX - r.left - SW / 2) / zoom + SW / 2, y: (e.clientY - r.top) / zoom }; }
+function toWorld(e) { const r = stage.getBoundingClientRect(), cx = (SW - chatSpace()) / 2; return { x: (e.clientX - r.left - cx) / zoom + cx, y: (e.clientY - r.top) / zoom }; }
 stage.addEventListener('contextmenu', e => e.preventDefault());
 stage.addEventListener('pointerdown', e => {
   const p = toWorld(e), end = pts[N];
@@ -245,8 +289,8 @@ stage.addEventListener('pointerdown', e => {
 stage.addEventListener('pointermove', e => {
   if (!drag || drag.id !== e.pointerId) return;
   const dx = e.clientX - drag.lx, dy = e.clientY - drag.ly; drag.lx = e.clientX; drag.ly = e.clientY;
-  if (drag.rotate) { yaw += dx * 0.6; yv = dx * 0.6; tilt = Math.max(-35, Math.min(35, tilt - dy * 0.3)); }
-  else { const p = toWorld(e); drag.tx = p.x - drag.ox; drag.ty = p.y - drag.oy; yv += dx * 0.05; }
+  if (drag.rotate) { yaw += dx * 0.6; yv = dx * 30; tilt = Math.max(-35, Math.min(35, tilt - dy * 0.3)); pendingFlip = false; }
+  else { const p = toWorld(e); drag.tx = p.x - drag.ox; drag.ty = p.y - drag.oy; yv += dx * 1.2; }
 });
 const endDrag = e => { if (drag && drag.id === e.pointerId) { drag = null; stage.classList.remove('grabbing'); } };
 stage.addEventListener('pointerup', endDrag); stage.addEventListener('pointercancel', endDrag);
@@ -254,35 +298,65 @@ stage.addEventListener('dblclick', e => { if (!e.target.closest('.hint')) doFlip
 stage.addEventListener('wheel', e => { e.preventDefault(); setZoom(zoom * Math.exp(-e.deltaY * 0.0015)); }, { passive: false });
 function setZoom(z) { zoom = Math.max(0.6, Math.min(2.6, z)); $('zoom').value = zoom; layout(); }
 $('zoom').oninput = e => setZoom(+e.target.value);
-function doFlip() { yawTarget = Math.round(yaw / 180) * 180 + 180; }
+function doFlip() { yawTarget = Math.round(yaw / 180) * 180 + 180; pendingFlip = true; setTimeout(() => pendingFlip = false, 1200); }
 $('btnFlip').onclick = doFlip; $('btnDrop').onclick = () => { drop(); yaw = yawTarget = 0; tilt = 0; };
 $('btnDetail').onclick = () => { const side = (Math.round(yaw / 180) % 2 + 2) % 2 ? 'back' : 'front'; $('lbImg').src = E.holderCanvas(side, 4).toDataURL(); $('lightbox').style.display = 'block'; };
 $('lightbox').onclick = () => $('lightbox').style.display = 'none';
 
-let last = performance.now();
-function step(dt) {
-  const a = anchor(), g = 2200 * dt * dt;
+// Physics runs on a fixed 1/120 s step so it behaves the same on 60 Hz / 120 Hz screens.
+// Tuned for: soft pendulum (~1.6 s period), card lags slightly, settles in ~3 s, no jitter when pulled taut.
+const PH = { step: 1 / 120, gravity: 1500, air: 1.1, maxV: 1100, iters: 10,
+  spin: 7.5, spinDamp: 0.55,     // card-angle spring (rad/s) & damping ratio
+  follow: 22 };                   // how quickly the grabbed card follows the pointer (1/s)
+let last = performance.now(), accT = 0, pendingFlip = false;
+function step(dt) { accT += dt; let n = 0; while (accT >= PH.step && n < 10) { sub(PH.step); accT -= PH.step; n++; } if (n === 10) accT = 0; }
+function capV(p, h) {
+  const vx = p.x - p.px, vy = p.y - p.py, v = Math.hypot(vx, vy), m = PH.maxV * h;
+  if (v > m) { p.px = p.x - vx * m / v; p.py = p.y - vy * m / v; }
+}
+function sub(h) {
+  const a = anchor(), keep = Math.exp(-PH.air * h), g = PH.gravity * h * h, end = pts[N];
+  const grabbing = drag && !drag.rotate && drag.tx != null;
   for (let i = 1; i <= N; i++) {
-    const p = pts[i], vx = (p.x - p.px) * 0.988, vy = (p.y - p.py) * 0.988;
-    p.px = p.x; p.py = p.y; p.x += vx; p.y += vy + g * (i === N ? 2.2 : 1);
+    const p = pts[i]; if (grabbing && i === N) continue;
+    const vx = (p.x - p.px) * keep, vy = (p.y - p.py) * keep;
+    p.px = p.x; p.py = p.y; p.x += vx; p.y += vy + g * (i === N ? 1.6 : 1);
   }
-  if (drag && !drag.rotate && drag.tx != null) { const e = pts[N]; e.x += (drag.tx - e.x) * 0.6; e.y += (drag.ty - e.y) * 0.6; }
+  if (grabbing) {
+    // keep the target within reach of the lanyard so the rope never fights the pointer
+    let dx = drag.tx - a.x, dy = drag.ty - a.y; const d = Math.hypot(dx, dy), R = ROPE * 0.995;
+    if (d > R) { dx *= R / d; dy *= R / d; }
+    const k = 1 - Math.exp(-PH.follow * h), ox = end.x, oy = end.y;
+    end.x += (a.x + dx - end.x) * k; end.y += (a.y + dy - end.y) * k;
+    end.px = ox; end.py = oy; capV(end, h);
+  }
   pts[0].x = a.x; pts[0].y = a.y;
-  for (let k = 0; k < 24; k++) {
+  for (let it = 0; it < PH.iters; it++) {
     for (let i = 0; i < N; i++) {
       const p = pts[i], q = pts[i + 1], dx = q.x - p.x, dy = q.y - p.y, d = Math.hypot(dx, dy) || 1e-6;
-      if (d > SEG) { const diff = (d - SEG) / d, w0 = i === 0 ? 0 : 0.5, w1 = i === 0 ? 1 : 0.5;
-        p.x += dx * diff * w0; p.y += dy * diff * w0; q.x -= dx * diff * w1; q.y -= dy * diff * w1; }
+      if (d <= SEG) continue;                         // a lanyard can go slack but not stretch
+      const diff = (d - SEG) / d;
+      let w0 = i === 0 ? 0 : 0.5, w1 = i === 0 ? 1 : 0.5;
+      if (grabbing && i + 1 === N) { w0 = i === 0 ? 0 : 1; w1 = 0; }   // grabbed end is pinned to the hand
+      p.x += dx * diff * w0; p.y += dy * diff * w0; q.x -= dx * diff * w1; q.y -= dy * diff * w1;
     }
     pts[0].x = a.x; pts[0].y = a.y;
   }
-  // card angle follows the lanyard end with inertia (card lags behind = realistic swing)
-  const e = pts[N], f = pts[N - 3], target = -Math.atan2(e.x - f.x, e.y - f.y);
-  const endVx = (e.x - e.px) / Math.max(dt, 1e-3);
-  av += (target - ang) * 0.09 - av * 0.07 - endVx * 0.00002; ang += av;
-  // yaw: spin inertia, gentle twist from sideways motion, settle to a face
-  if (!(drag && drag.rotate)) { yaw += yv; yv *= 0.93; yaw += (yawTarget - yaw) * 0.06; tilt *= 0.9; if (Math.abs(yv) < 0.05) yawTarget = Math.round(yaw / 180) * 180; }
+  for (let i = 1; i <= N; i++) capV(pts[i], h);
+  // card hangs from the reel and follows the lanyard direction through a damped spring
+  const f = pts[N - 3], target = -Math.atan2(end.x - f.x, end.y - f.y);
+  const w = PH.spin, z = PH.spinDamp;
+  av += (w * w * (target - ang) - 2 * z * w * av) * h; ang += av * h;
+  ang = Math.max(-1.3, Math.min(1.3, ang));
+  // yaw (deg): spin inertia, then ease to the nearest face
+  if (!(drag && drag.rotate)) {
+    yaw += yv * h; yv *= Math.exp(-3.2 * h);
+    if (!pendingFlip && Math.abs(yv) < 8) yawTarget = Math.round(yaw / 180) * 180;
+    if (pendingFlip || Math.abs(yv) < 8) yaw += (yawTarget - yaw) * (1 - Math.exp(-4.5 * h));
+    tilt *= Math.exp(-5 * h);
+  }
 }
+window.__badgeDebug = () => ({ ang, yaw, x: pts[N].x, y: pts[N].y });
 function drawRope() {
   rc.clearRect(0, 0, SW, SH);
   const acc = E.config.theme.accent, bg = E.config.theme.bg, words = E.config.strap && E.config.strap.length ? E.config.strap : [E.config.name];
@@ -368,6 +442,142 @@ function renderPrint() {
   g.appendChild(d);
 }
 
+// ---------------------------------------------------------------- name cards (名片)
+function renderNameCards() {
+  const g = $('cardGallery'); g.replaceChildren();
+  const cur = (cfg.namecard && cfg.namecard.style) || 'grid';
+  Object.entries(E.NAMECARD_STYLES).forEach(([key, label]) => {
+    const d = document.createElement('div'); d.className = 'card pick' + (key === cur ? ' on' : '');
+    d.innerHTML = `<div class="t">${label}${key === cur ? ' · 已选用' : ''}</div><div class="s">90×54 mm · 点击选用这个样式</div>`;
+    const row = document.createElement('div'); row.className = 'ncrow';
+    row.append(E.nameCardCanvas('front', key, 1), E.nameCardCanvas('back', key, 1)); d.appendChild(row);
+    const btns = document.createElement('div'); btns.className = 'row';
+    [['下载正面', 'front'], ['下载背面', 'back']].forEach(([t, side]) => {
+      const b = document.createElement('button'); b.textContent = t + '（600dpi）';
+      b.onclick = ev => { ev.stopPropagation(); dlCanvas(E.printNameCard(side, key, { dpi: 600 }), `名片_${label}_${side === 'front' ? '正面' : '背面'}.png`); };
+      btns.appendChild(b);
+    });
+    d.appendChild(btns);
+    d.onclick = () => { set(cfg, 'namecard.style', key); $('n_style').value = key; renderNameCards(); say(`已选用名片样式「${label}」，导出 brand.json 后用命令行可以出带裁切线的名片 PDF。`); };
+    g.appendChild(d);
+  });
+  const tip = document.createElement('div'); tip.className = 'card'; tip.style.maxWidth = '300px';
+  tip.innerHTML = `<div class="t">名片印刷</div><div class="s">左侧「名片」里填电话、微信、邮箱、地址；背面姓名职位跟工牌背面共用。<br>批量每人一张：<br><code>npm run print -- --config brand.json --people people.csv</code></div>`;
+  g.appendChild(tip);
+}
+
+// ---------------------------------------------------------------- chat assistant (runs locally, no server)
+const msgs = $('msgs');
+function say(text, who = 'bot', html) {
+  const d = document.createElement('div'); d.className = 'm ' + who;
+  if (html) d.innerHTML = html; else d.textContent = text;
+  msgs.appendChild(d); msgs.scrollTop = msgs.scrollHeight; return d;
+}
+const sw = c => `<span class="sw" style="background:${c}"></span>${c}`;
+function chips(list) {
+  $('chips').replaceChildren(...list.map(([t, fn]) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = t; b.onclick = fn; return b; }));
+}
+const HELP = `可以这样跟我说（一句话里能写好几条，用逗号或换行隔开）：
+· 品牌叫 Nova 设计周
+· 主色 #FF5A3C ／ 底色 #14110F ／ 辅助色 #FF8A6B
+· 标题 DESIGN / MEETS，高亮 AI
+· 标签 开幕演讲、工作坊、AI 共创
+· 名字 张三，职位 设计师，编号 NO.0007
+· 电话 138xxxx，微信 xxx，邮箱 a@b.com，地址 深圳南山
+· 口号 让设计更有温度 ／ 大字 NOVA
+· 浅色 ／ 暗色 ／ 翻面 ／ 重新掉落
+· 名片 极简白 ／ 名片 品牌色底 ／ 名片 暗夜网格
+也可以点 📎 上传 Logo 或品牌图，我会提取品牌色；上传 brand.json 直接套用。`;
+function hello() {
+  say('', 'bot', `👋 想要一张属于你们公司的工牌？<br><br><b>① 上传品牌资料</b>：点下面的 📎 上传 Logo、品牌图或现在用的工牌照片，我会提取品牌色并放上 Logo。<br><b>② 用对话调整</b>：直接说「品牌叫 XX」「主色 #FF5A3C」「名字 张三 职位 设计师」，右边实时变。<br><b>③ 选名片样式、导出</b>：顶部「名片」「印刷稿」页可以下载，命令行可以出视频和印刷 PDF。`);
+  chips([['怎么说？', () => say(HELP)], ['看名片样式', () => openTab('pcard')], ['翻面看看', doFlip], ['复制给 AI 帮我改', () => copyForAI('')]]);
+}
+function openTab(id) { document.querySelector(`.tabs button[data-pane="${id}"]`).click(); }
+function deepMerge(a, b) { for (const k of Object.keys(b)) { if (b[k] && typeof b[k] === 'object' && !Array.isArray(b[k]) && a[k] && typeof a[k] === 'object') deepMerge(a[k], b[k]); else a[k] = b[k]; } return a; }
+function setBrandName(n) {
+  cfg.name = n; set(cfg, 'card.brand', n); set(cfg, 'header.title', n); set(cfg, 'card.bandTitle', n); cfg.pulse = n;
+  set(cfg, 'poster.handle', '@' + n.replace(/\s+/g, '')); cfg.credit = `Created by ${n}`; set(cfg, 'strap', [cfg.giantWord ? `${cfg.giantWord} · ${new Date().getFullYear()}` : n, n]);
+}
+const KEYS = '品牌|名称|主色|颜色|底色|背景色|辅助色|标题|高亮|标签|名字|姓名|职位|编号|电话|手机|邮箱|微信|地址|口号|大字|浅色|暗色|深色|名片|翻面|掉落';
+function handle(text) {
+  text = text.trim(); if (!text) return;
+  say(text, 'me');
+  if (text.startsWith('{')) { try { deepMerge(cfg, JSON.parse(text)); fillForm(); apply(); return say('收到 JSON，已经套用到工牌上了 ✅'); } catch (e) { return say('这段 JSON 解析失败：' + e.message); } }
+  if (/^(帮助|help|怎么用|\?|？)$/i.test(text)) return say(HELP);
+  const segs = text.split(new RegExp(`[；;。\\n]|[，,](?=\\s*(?:${KEYS}))`)).map(x => x.trim()).filter(Boolean);
+  const done = []; let need = false;
+  for (const g of segs) {
+    let m;
+    const hex = (g.match(/#([0-9a-f]{6}|[0-9a-f]{3})\b/i) || [])[0];
+    if (hex && /底色|背景/.test(g)) { cfg.theme.bg = hex; done.push('底色 ' + sw(hex)); continue; }
+    if (hex && /辅助/.test(g)) { cfg.theme.accent2 = hex; done.push('辅助色 ' + sw(hex)); continue; }
+    if (hex) { cfg.theme.accent = hex; if (!/辅助/.test(text)) { const n = parseInt(hex.length === 4 ? hex.slice(1).split('').map(c => c + c).join('') : hex.slice(1), 16), d = v => Math.round(v * .82).toString(16).padStart(2, '0'); cfg.theme.accent2 = '#' + d(n >> 16 & 255) + d(n >> 8 & 255) + d(n & 255); } done.push('主色 ' + sw(hex)); continue; }
+    if ((m = g.match(/^(?:品牌名?|名称|公司)\s*(?:叫|是|为|[:：])?\s*(.+)$/))) { setBrandName(m[1].trim()); done.push('品牌名「' + m[1].trim() + '」'); continue; }
+    if ((m = g.match(/^大字\s*(?:是|为|[:：])?\s*([A-Za-z0-9]{1,8})/))) { cfg.giantWord = m[1].toUpperCase(); done.push('背景大字 ' + cfg.giantWord); continue; }
+    if ((m = g.match(/^高亮(?:词)?\s*(?:是|为|[:：])?\s*(.+)$/))) { set(cfg, 'card.highlight', m[1].trim()); done.push('高亮词「' + m[1].trim() + '」'); continue; }
+    if ((m = g.match(/^标题\s*(?:是|为|[:：])?\s*(.+)$/))) {
+      const parts = m[1].split(/\s*[\/|｜]\s*/).filter(Boolean); set(cfg, 'card.headline', parts.length > 1 ? [parts[0], parts.slice(1).join(' ') + ' '] : [parts[0], '']);
+      done.push('卡面标题「' + parts.join(' / ') + '」'); continue; }
+    if ((m = g.match(/^标签\s*(?:是|为|[:：])?\s*(.+)$/))) { cfg.tags = m[1].split(/[,，、\s]+/).filter(Boolean).slice(0, 12); done.push(`${cfg.tags.length} 个标签`); continue; }
+    if ((m = g.match(/^(?:名字|姓名)\s*(?:是|叫|[:：])?\s*(\S+)(?:\s*(?:职位|岗位)\s*(?:是|[:：])?\s*(.+))?$/))) { set(cfg, 'back.name', m[1]); done.push('姓名 ' + m[1]); if (m[2]) { set(cfg, 'back.title', m[2].trim()); done.push('职位 ' + m[2].trim()); } continue; }
+    if ((m = g.match(/^(?:职位|岗位)\s*(?:是|[:：])?\s*(.+)$/))) { set(cfg, 'back.title', m[1].trim()); done.push('职位 ' + m[1].trim()); continue; }
+    if ((m = g.match(/^编号\s*(?:是|[:：])?\s*(.+)$/))) { set(cfg, 'back.id', m[1].trim()); done.push('编号 ' + m[1].trim()); continue; }
+    if ((m = g.match(/^(?:电话|手机)\s*(?:是|[:：])?\s*(.+)$/))) { set(cfg, 'contact.phone', m[1].trim()); done.push('电话'); continue; }
+    if ((m = g.match(/^邮箱\s*(?:是|[:：])?\s*(.+)$/))) { set(cfg, 'contact.email', m[1].trim()); done.push('邮箱'); continue; }
+    if ((m = g.match(/^微信\s*(?:是|号|[:：])?\s*(.+)$/))) { set(cfg, 'contact.wechat', m[1].trim()); done.push('微信'); continue; }
+    if ((m = g.match(/^地址\s*(?:是|[:：])?\s*(.+)$/))) { set(cfg, 'contact.address', m[1].trim()); done.push('地址'); continue; }
+    if ((m = g.match(/^(?:口号|slogan)\s*(?:是|[:：])?\s*(.+)$/i))) { set(cfg, 'namecard.slogan', m[1].trim()); done.push('名片口号'); continue; }
+    if (/浅色|白色主题|亮色/.test(g)) { cfg.theme.mode = 'light'; done.push('浅色主题'); continue; }
+    if (/暗色|深色|黑色主题/.test(g)) { cfg.theme.mode = 'dark'; done.push('暗色主题'); continue; }
+    if (/名片/.test(g)) { const st = /极简|白/.test(g) ? 'minimal' : /品牌色|荧光|彩/.test(g) ? 'neon' : /网格|暗/.test(g) ? 'grid' : null; if (st) set(cfg, 'namecard.style', st); openTab('pcard'); done.push(st ? '名片样式「' + E.NAMECARD_STYLES[st] + '」' : '打开名片页'); continue; }
+    if (/翻面|背面/.test(g)) { openTab('p3d'); doFlip(); done.push('翻面'); continue; }
+    if (/掉落|重新/.test(g)) { openTab('p3d'); drop(); done.push('重新掉落'); continue; }
+    need = true;
+  }
+  if (done.length) { fillForm(); apply(); say('', 'bot', '已更新：' + done.join('、') + ' ✅'); }
+  if (need) {
+    say('这句我在本地没完全看懂 🤔 你可以换个说法（输入「帮助」看示例），或者把需求交给 AI：');
+    chips([['复制给 AI 帮我改', () => copyForAI(text)], ['怎么说？', () => say(HELP)]]);
+  }
+}
+function copyForAI(req) {
+  const slim = JSON.parse(JSON.stringify(cfg)); delete slim.logo; if (slim.card && slim.card.hero) delete slim.card.hero.image;
+  const prompt = `你是工牌设计助手。下面是我的工牌配置 brand.json（Lanyard Badge Studio 格式）。请按我的需求修改，只返回修改后的完整 JSON，不要解释。\n需求：${req || '（在这里写你的需求，例如：换成适合咖啡品牌的文案和配色）'}\n\n${JSON.stringify(slim, null, 2)}`;
+  (navigator.clipboard ? navigator.clipboard.writeText(prompt) : Promise.reject()).then(
+    () => say('已复制提示词 📋 粘贴给 Claude / ChatGPT / 豆包，把它返回的 JSON 整段粘贴回这里，我就会套用。'),
+    () => say('浏览器不允许自动复制，请手动复制下面这段：\n\n' + prompt));
+}
+// dominant brand colour from an image (ignores near-white / near-black / grey pixels)
+function brandColor(img) {
+  const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'); x.drawImage(img, 0, 0, 64, 64);
+  const d = x.getImageData(0, 0, 64, 64).data, bins = {};
+  for (let i = 0; i < d.length; i += 4) {
+    const [r, g, b, a] = [d[i], d[i + 1], d[i + 2], d[i + 3]]; if (a < 200) continue;
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b), sat = mx ? (mx - mn) / mx : 0;
+    if (sat < 0.35 || mx < 60) continue;
+    const key = [r >> 4, g >> 4, b >> 4].join(','); (bins[key] = bins[key] || { n: 0, r: 0, g: 0, b: 0 }); const o = bins[key]; o.n++; o.r += r; o.g += g; o.b += b;
+  }
+  const best = Object.values(bins).sort((a, b) => b.n - a.n)[0]; if (!best) return null;
+  const hex = v => Math.round(v).toString(16).padStart(2, '0');
+  const rr_ = best.r / best.n, gg = best.g / best.n, bb = best.b / best.n;
+  return { main: '#' + hex(rr_) + hex(gg) + hex(bb), second: '#' + hex(rr_ * .82) + hex(gg * .82) + hex(bb * .82) };
+}
+$('chatFile').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  if (f.name.endsWith('.json')) { try { deepMerge(cfg, JSON.parse(await f.text())); fillForm(); await apply(); say('已套用 ' + f.name + ' ✅'); } catch (er) { say('JSON 读取失败：' + er.message); } return; }
+  const url = await fileToURL(f); say('', 'me', `上传了 ${f.name}<img src="${url}">`);
+  const im = new Image(); im.onload = async () => {
+    const col = brandColor(im); cfg.logo = url;
+    if (col) { cfg.theme.accent = col.main; cfg.theme.accent2 = col.second; }
+    fillForm(); await apply();
+    say('', 'bot', `已把它放到卡片左上角当 Logo${col ? `，并提取出品牌色：主色 ${sw(col.main)}，辅助色 ${sw(col.second)}` : '（没找到明显的彩色，品牌色保持不变）'}。<br>不满意可以说「主色 #xxxxxx」直接改；如果这张不是 Logo，说「去掉 Logo」。`);
+  }; im.src = url;
+};
+$('chatForm').onsubmit = e => { e.preventDefault(); const v = $('chatInput').value; $('chatInput').value = '';
+  if (/去掉\s*logo/i.test(v)) { say(v, 'me'); cfg.logo = null; fillForm(); apply(); return say('Logo 已去掉 ✅'); }
+  handle(v); };
+$('chatHead').onclick = () => { $('chat').classList.toggle('min'); $('chatToggle').textContent = $('chat').classList.contains('min') ? '+' : '—'; layout(); };
+
 // ---------------------------------------------------------------- tabs & boot
 document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
   document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b));
@@ -377,7 +587,7 @@ document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
 window.addEventListener('resize', layout);
 (async () => {
   try { const r = await fetch('../examples/wqai/brand.json'); if (r.ok) { cfg = Object.assign(cfg, await r.json()); cfg.fonts = { cjk: 'Noto Sans SC', latin: 'Inter' }; } } catch (e) { }
-  await Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 1500))]); fillForm(); await apply(); layout(); drop();
+  await Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 1500))]); fillForm(); await apply(); layout(); drop(); hello();
   requestAnimationFrame(loop); requestAnimationFrame(animLoop);
 })();
 </script>

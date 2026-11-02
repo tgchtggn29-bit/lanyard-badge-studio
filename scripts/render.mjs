@@ -32,6 +32,8 @@ await saveCanvas(page, 'E.poster(1)', img('poster_1242x1660.png'));
 await saveCanvas(page, 'E.banner(1)', img('banner_1440x600.png'));
 await saveCanvas(page, 'E.banner(2)', img('banner_2880x1200.png'));
 if (res === '4k' || res === 'both') await saveCanvas(page, 'E.still(3)', img('preview_2160x3840.png'));
+for (const st of ['grid', 'neon', 'minimal']) for (const side of ['front', 'back'])
+  await saveCanvas(page, `E.nameCardCanvas('${side}','${st}',2)`, img(`namecard_${st}_${side}.png`));
 
 // ---------------------------------------------------------------- frames + video
 async function renderFrames(scale, dir) {

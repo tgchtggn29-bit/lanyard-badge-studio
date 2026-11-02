@@ -44,6 +44,7 @@ function pageHTML(pages, wmm, hmm, withMarks, label) {
     b{font:500 4.2pt "Noto Sans CJK SC",sans-serif;color:#000;white-space:nowrap}
   </style></head><body>${body}</body></html>`;
 }
+const pdfSized = (...a) => pdf(...a);
 async function pdf(file, pages, wmm, hmm, withMarks, label) {
   const p = await browser.newPage();
   await p.setContent(pageHTML(pages, wmm, hmm, withMarks, label), { waitUntil: 'load' });
@@ -76,6 +77,22 @@ if (args.people) {
   }
   await pdf('04_工牌背面_批量_裁切线.pdf', pages, cw, ch, true, cfg.name);
   console.log(`  ${people.length} people`);
+}
+
+// ---------------------------------------------------------------- business cards (名片) 90×54 mm
+{
+  const style = args['namecard-style'] || (C.namecard && C.namecard.style) || 'grid';
+  console.log(`• business cards (${style})`);
+  const nc = (side, person) => page.evaluate(([sd, st, o, pp]) => BadgeEngine.printNameCard(sd, st, o, pp).toDataURL('image/png'), [side, style, { w: 90, h: 54, bleed, dpi }, person || null]);
+  const f = await nc('front'), bk = await nc('back');
+  save('07_名片正面_出血_600dpi.png', f); save('08_名片背面_出血_600dpi.png', bk);
+  const pages = [{ src: f, caption: '名片正面' }];
+  if (args.people) {
+    const rows = fs.readFileSync(path.resolve(args.people), 'utf8').replace(/^\uFEFF/, '').split(/\r?\n/).filter(l => l.trim());
+    const head = rows.shift().split(',').map(x => x.trim().toLowerCase());
+    for (const r of rows) { const v = r.split(','), pp = Object.fromEntries(head.map((h, i) => [h, (v[i] || '').trim()])); pages.push({ src: await nc('back', pp), caption: `名片背面 ${pp.name}` }); }
+  } else pages.push({ src: bk, caption: '名片背面' });
+  await pdfSized('07_名片_正反面_裁切线.pdf', pages, 90, 54, true, cfg.name);
 }
 
 // ---------------------------------------------------------------- lanyard
@@ -117,6 +134,7 @@ const spec = `<!doctype html><html><head><meta charset="utf-8"><style>
 <h2>尺寸</h2><table>
 <tr><th>物料</th><th>成品尺寸</th><th>出血</th><th>分辨率</th><th>文件</th></tr>
 <tr><td>工牌卡片（插卡）</td><td>${cw} × ${ch} mm（竖版）</td><td>四边各 ${bleed} mm</td><td>${dpi} dpi</td><td>01 / 02 / 03${args.people ? ' / 04' : ''}</td></tr>
+<tr><td>名片</td><td>90 × 54 mm（横版）</td><td>四边各 ${bleed} mm</td><td>${dpi} dpi</td><td>07 / 08</td></tr>
 <tr><td>挂绳</td><td>${lw} × ${ll} mm</td><td>四边各 2 mm</td><td>300 dpi</td><td>05</td></tr>
 </table>
 <h2>颜色</h2><table><tr><th>名称</th><th>HEX</th><th>RGB</th><th>CMYK（参考换算）</th></tr>${specRows}</table>
@@ -128,6 +146,7 @@ const spec = `<!doctype html><html><head><meta charset="utf-8"><style>
 <h2>工艺建议</h2><table>
 <tr><td>卡片</td><td>PVC 卡 0.76 mm 或 300g 铜版纸覆哑膜；四角圆角 R3 mm（模切）；插入透明卡套使用</td></tr>
 <tr><td>卡套</td><td>透明硬胶 / 亚克力竖版卡套，内径约 ${(cw + 2).toFixed(0)} × ${(ch + 2).toFixed(0)} mm，配伸缩易拉扣</td></tr>
+<tr><td>名片</td><td>350g 特种纸 / 铜版纸覆膜，可加烫金或局部 UV</td></tr>
 <tr><td>挂绳</td><td>${lw} mm 宽涤纶织带，热转印双面印；金属钩 + 伸缩扣</td></tr></table>
 <h2>文件清单</h2><table>${files.map(f => `<tr><td>${f}</td></tr>`).join('')}<tr><td>06_设计规范.pdf（本文件）</td></tr></table>
 </body></html>`;
@@ -143,9 +162,9 @@ fs.writeFileSync(path.join(out, '给印刷厂的说明.txt'),
    - 01/02 *_裁切线.pdf：带裁切线，直接拼版印刷
    - 03 出血版 PDF：无裁切线，正反两页
    - *_出血_600dpi.png：位图原图${args.people ? '\n   - 04 批量背面 PDF + 批量背面/ 文件夹：每人一张' : ''}
-2. 挂绳：${lw}×${ll}mm，300dpi，见 05。
-3. 颜色、字体、工艺：见 06_设计规范.pdf。
-${fluoro ? '4. 主色为荧光色，CMYK 无法还原，请用荧光专色或指定潘通色，务必先打样。\n' : ''}`);
+2. 名片：90×54mm 横版，见 07（正反面带裁切线 PDF，含每人背面）/ 08。\n3. 挂绳：${lw}×${ll}mm，300dpi，见 05。
+4. 颜色、字体、工艺：见 06_设计规范.pdf。
+${fluoro ? '5. 主色为荧光色，CMYK 无法还原，请用荧光专色或指定潘通色，务必先打样。\n' : ''}`);
 await browser.close();
 console.log(`\n✓ print package → ${out}`);
 fs.readdirSync(out).forEach(f => console.log('  ' + f));
