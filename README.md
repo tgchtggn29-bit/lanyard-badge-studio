@@ -1,6 +1,6 @@
 <p align="center"><b>🗓️ 湾区AI日历 出品</b> · Made by <b>湾区AI日历 (GBA AI Calendar)</b></p>
 
-<p align="center"><b>👉 <a href="https://rawcdn.githack.com/tgchtggn29-bit/lanyard-badge-studio/6ed9f7289744352adbabb7944ea3ef797f48e252/studio/index.html">立即打开工作台体验 · Open the Studio</a> 👈</b><br>
+<p align="center"><b>👉 <a href="https://tgchtggn29-bit.github.io/lanyard-badge-studio/">立即打开工作台体验 · Open the Studio</a> 👈</b><br>
 <sub>在线拖拽、旋转、翻面你的 3D 工牌，免安装；装上技能让你的 AI 智能体帮你设计 · Drag, spin & flip a 3D badge in your browser — no install</sub></p>
 
 # Lanyard Badge Studio · 工牌工作室
@@ -62,7 +62,7 @@ Make a great first impression on customers, partners, service providers and supp
 
 ### 1. 网页工作台（不用写代码）
 
-**不想安装：直接 [在线打开工作台](https://rawcdn.githack.com/tgchtggn29-bit/lanyard-badge-studio/6ed9f7289744352adbabb7944ea3ef797f48e252/studio/index.html)。** 想在自己电脑上跑：
+**不想安装：直接 [在线打开工作台](https://tgchtggn29-bit.github.io/lanyard-badge-studio/)。** 想在自己电脑上跑：
 
 ```bash
 git clone https://github.com/tgchtggn29-bit/lanyard-badge-studio
