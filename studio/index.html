@@ -20,10 +20,11 @@ header{height:56px;display:flex;align-items:center;gap:12px;padding:0 18px;borde
 header .dot{width:8px;height:8px;border-radius:50%;background:var(--acc);box-shadow:0 0 12px var(--acc)}
 header h1{font-size:15px;margin:0;font-weight:800;letter-spacing:.02em}
 header .sp{flex:1}
-.langsw{display:flex;border:1px solid var(--line);border-radius:999px;padding:2px;gap:2px}
-.langsw button{border:0;padding:5px 12px;background:transparent}
-.langsw button.on{background:#fff;color:#0A0A0A}
-a.btn.gh{display:inline-flex;align-items:center;gap:6px;background:#fff;color:#0A0A0A;border-color:#fff;text-decoration:none;font-weight:700}
+.tabs{align-items:center}
+.topright{margin-left:auto;display:flex;gap:8px;align-items:center}
+.langbtn{background:#fff;color:#0A0A0A;border-color:#fff;font-weight:700;min-width:56px}
+.langbtn:hover{background:var(--acc);border-color:var(--acc);color:#0A0A0A}
+a.btn.gh{display:inline-flex;align-items:center;gap:6px;background:#111;color:#fff;border:1px solid rgba(255,255,255,.35);text-decoration:none;font-weight:700}
 a.btn.gh:hover{background:var(--acc);border-color:var(--acc);color:#0A0A0A}
 @media (max-width:860px){header h1{font-size:13px}header .btn,header button{padding:6px 10px}}
 button,.btn{background:#1b1b1b;color:var(--text);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font:600 13px inherit;font-family:inherit;cursor:pointer;white-space:nowrap}
@@ -106,8 +107,6 @@ section.view{position:relative;overflow:hidden;display:flex;flex-direction:colum
   <span class="sp"></span>
   <label class="btn">导入配置<input id="importCfg" type="file" accept=".json" hidden></label>
   <button id="exportCfg" class="primary">导出 brand.json</button>
-  <div class="langsw"><button type="button" data-lang="zh">中文</button><button type="button" data-lang="en">EN</button></div>
-  <a class="btn gh" href="https://github.com/tgchtggn29-bit/lanyard-badge-studio" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
 </header>
 <main>
 <aside>
@@ -167,6 +166,7 @@ section.view{position:relative;overflow:hidden;display:flex;flex-direction:colum
     <button data-pane="pposter">海报 & 横幅</button>
     <button data-pane="pcard">名片</button>
     <button data-pane="pprint">印刷稿</button>
+    <div class="topright"><button type="button" class="langbtn" id="langBtn">EN</button><a class="btn gh" href="https://github.com/tgchtggn29-bit/lanyard-badge-studio" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a></div>
   </div>
 
   <div id="p3d" class="pane on">
@@ -537,9 +537,9 @@ function translateDOM(root) {
     e.setAttribute(a, LANG === 'en' ? tr(e.getAttribute(key)) : e.getAttribute(key));
   }));
   document.documentElement.lang = LANG === 'en' ? 'en' : 'zh-CN';
-  document.querySelectorAll('.langsw button').forEach(b => b.classList.toggle('on', b.dataset.lang === LANG));
+  $('langBtn').textContent = LANG === 'en' ? '中文' : 'EN'; $('langBtn').title = LANG === 'en' ? '切换到中文' : 'Switch to English';
 }
-document.querySelectorAll('.langsw button').forEach(b => b.onclick = () => { LANG = b.dataset.lang; try { localStorage.setItem('lbs.lang', LANG); } catch (e) { } reelCache = null; translateDOM(); });
+$('langBtn').onclick = () => { LANG = LANG === 'en' ? 'zh' : 'en'; try { localStorage.setItem('lbs.lang', LANG); } catch (e) { } reelCache = null; translateDOM(); };
 
 // ---------------------------------------------------------------- 8-second showreel (drop → drag → flip → zoom), recorded in the browser
 let reelCache = null;
@@ -676,8 +676,8 @@ $('gApply').onclick = async () => {
 $('chatHead').onclick = () => { $('chat').classList.toggle('min'); $('chatToggle').textContent = $('chat').classList.contains('min') ? '+' : '—'; layout(); };
 
 // ---------------------------------------------------------------- tabs & boot
-document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
-  document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b));
+document.querySelectorAll('.tabs button[data-pane]').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.tabs button[data-pane]').forEach(x => x.classList.toggle('on', x === b));
   document.querySelectorAll('.pane').forEach(p => p.classList.toggle('on', p.id === b.dataset.pane));
   if (b.dataset.pane === 'p3d') layout();
 });
